@@ -39,7 +39,11 @@ export interface GameEvent {
     | "pulse"
     | "player_hit"
     | "shade_spawned"
-    | "game_over";
+    | "game_over"
+    // Chỉ phát khi bật lốc xoáy (không bao giờ xảy ra trong headless).
+    | "tornado_warning"
+    | "tornado_sweep"
+    | "shade_killed";
   data: Record<string, unknown>;
 }
 

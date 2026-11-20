@@ -214,3 +214,50 @@ describe("scenario", () => {
     expect(a).not.toEqual(runHeadless({ seed: 2, ticks: 300, snapshotEvery: 10 }));
   });
 });
+
+describe("lướt (dash, phím F)", () => {
+  const dist15 = (T.dash_speed * Math.round(T.dash_duration_s * 60)) / 60; // 4.5 m
+  it("lướt theo hướng đang đi trong dash_duration_s với dash_speed", () => {
+    const rows = run({}, 15, [{ tick: 0, move: [0, 1], dash: true }, { tick: 1, dash: false }]);
+    expect(last(rows).player.pos).toEqual([0, 0, dist15]);
+  });
+  it("đứng yên thì lướt theo hướng nhìn gần nhất (mặc định +Z)", () => {
+    const rows = run({}, 15, [{ tick: 0, dash: true }, { tick: 1, dash: false }]);
+    expect(last(rows).player.pos).toEqual([0, 0, dist15]);
+  });
+  it("không mất ngọn lửa khi lướt qua Bóng Mực, nhưng bị trúng nếu không lướt", () => {
+    const sc = { player: { carried: 4 }, shades: [{ id: "S1", pos: [0, 1, 2] }] };
+    const dashing = run(sc, 15, [{ tick: 0, move: [0, 1], dash: true }, { tick: 1, dash: false }]);
+    expect(events(dashing, "player_hit")).toHaveLength(0);
+    expect(last(dashing).player.flames).toBe(T.flames);
+    const walking = run(sc, 15, [{ tick: 0, move: [0, 1] }]);
+    expect(events(walking, "player_hit").length).toBeGreaterThan(0);
+  });
+  it("hết lướt thì lại có thể bị trúng", () => {
+    const rows = run({ shades: [{ id: "S1", pos: [0, 1, 1] }] }, 90, [{ tick: 0, dash: true }, { tick: 1, dash: false }]);
+    expect(events(rows, "player_hit").length).toBeGreaterThan(0);
+  });
+  it("tôn trọng dash_cooldown_s", () => {
+    const rows = run({}, 40, [
+      { tick: 0, move: [0, 1], dash: true }, { tick: 1, dash: false },
+      { tick: 20, dash: true }, { tick: 21, dash: false }, // còn hồi chiêu
+    ]);
+    expect(last(rows).player.pos[2]).toBeCloseTo(dist15 + (40 - 15) * (T.player_speed / 60), 2);
+    const later = run({}, 120, [
+      { tick: 0, dash: true }, { tick: 1, dash: false },
+      { tick: 100, dash: true }, { tick: 101, dash: false }, // đã hết hồi chiêu
+    ]);
+    expect(last(later).player.pos[2]).toBeCloseTo(2 * dist15, 2);
+  });
+  it("giữ nút không lướt lại (kích hoạt khi false sang true)", () => {
+    const rows = run({}, 200, [{ tick: 0, dash: true }]);
+    expect(last(rows).player.pos[2]).toBeCloseTo(dist15, 2);
+  });
+  it("vẫn bị chặn ở mép đảo khi lướt", () => {
+    const p = last(run({ player: { pos: [44, 0, 0] } }, 15, [{ tick: 0, move: [1, 0], dash: true }])).player.pos;
+    expect(Math.hypot(p[0], p[2])).toBeLessThanOrEqual(45 + 1e-3);
+  });
+  it("không có input dash thì hành vi cũ không đổi (giữ tương thích contract)", () => {
+    expect(last(run({}, 60, [{ tick: 0, move: [0, 1] }])).player.pos).toEqual([0, 0, T.player_speed]);
+  });
+});

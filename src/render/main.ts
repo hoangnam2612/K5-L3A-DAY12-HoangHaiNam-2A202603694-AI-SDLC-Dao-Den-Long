@@ -1,10 +1,16 @@
+/// <reference types="vite/client" />
 import * as THREE from "three";
 import { Game } from "../sim/game";
 import { WORLD as W } from "../sim/tuning";
+import { makeTornado } from "./tornadoModel";
 import { decoRng, makeLantern, makeMushroom, makePlayer, makeRock, makeShade, makeStars, makeTree, type ShadeModel } from "./models";
 
 // Render chỉ ĐỌC trạng thái từ lõi sim; mọi luật chơi nằm ở src/sim.
-let game = new Game((Math.random() * 2 ** 31) | 0);
+// Lốc xoáy chỉ bật trong game có giao diện; headless luôn tắt để giữ đúng Test Contract.
+const newGame = () => new Game((Math.random() * 2 ** 31) | 0, {}, [], { tornado: true });
+let game = newGame();
+// Chỉ ở chế độ dev (vite dev): cho phép kiểm tra thủ công, không có trong bản build.
+if (import.meta.env.DEV) (window as any).__ddl = { get game() { return game; } };
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(innerWidth, innerHeight);
@@ -53,7 +59,32 @@ const moteGeo = new THREE.SphereGeometry(0.25, 8, 8);
 const moteMat = new THREE.MeshBasicMaterial({ color: 0xfff3a0 });
 const dyn = new THREE.Group();
 scene.add(dyn);
+// Vệt sáng mờ để thấy Mây đang lướt (chỉ là hiệu ứng hiển thị).
+const trailGeo = new THREE.SphereGeometry(0.45, 10, 10);
+const trail: { m: THREE.Mesh; life: number }[] = [];
+let lastFrameMs = performance.now();
 const shadeModels = new Map<string, ShadeModel>();
+// Dải đỏ cảnh báo đường quét của lốc xoáy.
+const warnStrip = new THREE.Group();
+const warnMat = new THREE.MeshBasicMaterial({ color: 0xff2230, transparent: true, opacity: 0.4, depthWrite: false });
+const warnPlane = new THREE.Mesh(new THREE.PlaneGeometry(W.tornado_half_len * 2, W.tornado_band_width), warnMat);
+warnPlane.rotation.x = -Math.PI / 2;
+warnPlane.position.y = 0.06;
+const edgeMat = new THREE.MeshBasicMaterial({ color: 0xffd0d0, transparent: true, opacity: 0.9, depthWrite: false });
+for (const sz of [-1, 1]) {
+  const e = new THREE.Mesh(new THREE.PlaneGeometry(W.tornado_half_len * 2, 0.35), edgeMat);
+  e.rotation.x = -Math.PI / 2;
+  e.position.set(0, 0.07, (sz * W.tornado_band_width) / 2);
+  warnStrip.add(e);
+}
+warnStrip.add(warnPlane);
+warnStrip.visible = false;
+scene.add(warnStrip);
+const tornadoModel = makeTornado();
+tornadoModel.group.visible = false;
+scene.add(tornadoModel.group);
+const warnBanner = document.getElementById("warn")!;
+const warnFrame = document.getElementById("warnframe")!;
 const shadeLayer = new THREE.Group();
 scene.add(shadeLayer);
 
@@ -100,7 +131,7 @@ function show(html: string) {
   running = false;
 }
 function start() {
-  game = new Game(newSeed());
+  game = newGame();
   endShown = false;
   keys.clear();
   overlay.hidden = true;
@@ -115,9 +146,11 @@ const guide = `
     <li><b>Bóng Mực</b> đuổi theo bạn. Chạm vào sẽ mất 1 ngọn lửa và đánh rơi một nửa số đom đóm đang mang. Hết 3 ngọn lửa là thua.</li>
     <li>Bóng Mực sợ đèn lồng: chúng không vào được vùng quanh đèn, đó là chỗ an toàn.</li>
     <li>Nhấn <kbd>Q</kbd> để tung <b>xung sáng</b>: tốn 2 đom đóm, đẩy lùi và làm choáng bóng ở gần (hồi 2 giây).</li>
+    <li>Nhấn <kbd>F</kbd> để <b>lướt</b> nhanh theo hướng đang đi: lướt xuyên qua Bóng Mực mà <b>không mất ngọn lửa</b> (hồi 1,5 giây).</li>
+    <li><b>Lốc xoáy</b> thỉnh thoảng càn quét qua đảo vào lúc bất ngờ. Khi thấy <b>dải đỏ</b> và viền đỏ nhấp nháy, hãy chạy ra khỏi dải trong vài giây. Lốc xoáy quét trúng Bóng Mực thì chúng chết, quét trúng Mây thì mất 1 ngọn lửa (lướt <kbd>F</kbd> để xuyên qua an toàn).</li>
   </ul>
   <h2>Điều khiển</h2>
-  <p><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> di chuyển · <kbd>Space</kbd> nhảy · <kbd>E</kbd> nạp đèn · <kbd>Q</kbd> xung sáng · <kbd>R</kbd> chơi lại</p>
+  <p><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> di chuyển · <kbd>Space</kbd> nhảy · <kbd>E</kbd> nạp đèn · <kbd>Q</kbd> xung sáng · <kbd>F</kbd> lướt · <kbd>R</kbd> chơi lại</p>
   <h2>Điểm</h2>
   <p>Nhặt đom đóm +10 · thắp đèn +100 · làm choáng bóng +20 · khi thắng: +1 mỗi giây còn lại, +50 mỗi ngọn lửa còn lại.</p>`;
 function showIntro() {
@@ -147,7 +180,7 @@ function frame(now: number) {
   // Camera nhìn về +Z nên phải (D) là -X.
   const mx = (keys.has("KeyA") ? 1 : 0) - (keys.has("KeyD") ? 1 : 0);
   const mz = (keys.has("KeyW") ? 1 : 0) - (keys.has("KeyS") ? 1 : 0);
-  const input = { move: [mx, mz] as [number, number], jump: keys.has("Space"), interact: keys.has("KeyE"), pulse: keys.has("KeyQ") };
+  const input = { move: [mx, mz] as [number, number], jump: keys.has("Space"), interact: keys.has("KeyE"), pulse: keys.has("KeyQ"), dash: keys.has("KeyF") };
   while (acc >= 1 / W.tick_rate) {
     // Nhập trực tiếp vào lõi qua cùng cơ chế frame như headless.
     (game as any).frames = [{ tick: game.steps, ...input }];
@@ -164,6 +197,21 @@ function frame(now: number) {
   if (running && (mx !== 0 || mz !== 0)) facing = Math.atan2(mx, mz);
   playerModel.rotation.y = facing;
   playerLight.position.set(p[0], 3, p[2]);
+  const dt = Math.min(0.1, (now - lastFrameMs) / 1000);
+  lastFrameMs = now;
+  if (running && game.player.dash_ticks > 0) {
+    const m = new THREE.Mesh(trailGeo, new THREE.MeshBasicMaterial({ color: 0xffd36e, transparent: true, opacity: 0.5, depthWrite: false }));
+    m.position.set(p[0], p[1] + 1, p[2]);
+    scene.add(m);
+    trail.push({ m, life: 0.35 });
+  }
+  for (let i = trail.length - 1; i >= 0; i--) {
+    const t = trail[i]!;
+    t.life -= dt;
+    if (t.life <= 0) { scene.remove(t.m); (t.m.material as THREE.Material).dispose(); trail.splice(i, 1); continue; }
+    (t.m.material as THREE.MeshBasicMaterial).opacity = (t.life / 0.35) * 0.5;
+    t.m.scale.setScalar(t.life / 0.35 + 0.2);
+  }
   camera.position.set(p[0], p[1] + 15, p[2] - 15);
   camera.lookAt(p[0], p[1], p[2]);
   game.lanterns.forEach((l, i) => {
@@ -195,11 +243,40 @@ function frame(now: number) {
   }
   for (const [id, sm] of shadeModels) if (!alive.has(id)) { shadeLayer.remove(sm.group); shadeModels.delete(id); }
 
+  // Lốc xoáy: dải đỏ cảnh báo, banner, viền đỏ, rồi phễu càn quét.
+  const tn = game.tornado;
+  const warning = running && !!tn && tn.phase === "warn";
+  const sweeping = running && !!tn && tn.phase === "sweep";
+  warnBanner.hidden = !warning;
+  warnFrame.hidden = !warning;
+  warnStrip.visible = warning || sweeping;
+  tornadoModel.group.visible = warning || sweeping;
+  if (tn && (warning || sweeping)) {
+    const dx = tn.end[0] - tn.start[0], dz = tn.end[1] - tn.start[1];
+    warnStrip.position.set((tn.start[0] + tn.end[0]) / 2, 0, (tn.start[1] + tn.end[1]) / 2);
+    warnStrip.rotation.y = -Math.atan2(dz, dx);
+    if (warning) {
+      const left = tn.ticks_left / W.tick_rate;
+      const urgency = 1 - left / W.tornado_warn_s;
+      warnBanner.textContent = `⚠ LỐC XOÁY SẮP QUÉT QUA! Tránh dải đỏ (${Math.ceil(left)})`;
+      warnMat.opacity = 0.3 + 0.2 * Math.sin(t * (6 + urgency * 14));
+      tornadoModel.group.position.set(tn.start[0], 0, tn.start[1]);
+      tornadoModel.group.scale.setScalar(0.5 + 0.5 * urgency);
+    } else {
+      warnMat.opacity = 0.22;
+      tornadoModel.group.position.set(tn.pos[0], 0, tn.pos[1]);
+      tornadoModel.group.scale.setScalar(1);
+    }
+    tornadoModel.layers.forEach((l, i) => (l.rotation.y = t * (6 + i) * (i % 2 ? -1 : 1)));
+    tornadoModel.debris.rotation.y = t * 5;
+  }
+
   const lit = game.lanterns.filter((l) => l.lit).length;
   hud.textContent =
     `Đèn: ${lit}/${game.lanterns.length}   Ánh sáng mang: ${game.player.carried}   Ngọn lửa: ${game.player.flames}\n` +
     `Điểm: ${game.score}   Còn: ${Math.max(0, game.timeLeft).toFixed(0)}s\n` +
-    "WASD đi · Space nhảy · E nạp đèn · Q xung sáng · R chơi lại";
+    `Lướt (F): ${game.player.dash_cd > 0 ? game.player.dash_cd.toFixed(1) + "s" : "sẵn sàng"}\n` +
+    "WASD đi · Space nhảy · E nạp đèn · Q xung sáng · F lướt · R chơi lại";
   renderer.render(scene, camera);
   requestAnimationFrame(frame);
 }

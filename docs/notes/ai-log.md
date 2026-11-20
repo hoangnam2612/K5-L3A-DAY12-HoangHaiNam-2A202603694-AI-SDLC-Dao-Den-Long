@@ -13,6 +13,8 @@ Công cụ: Claude Code (app desktop), mô hình Claude Sonnet 5.5. Harness: `AG
 | 6 | Thêm màn mở đầu, hướng dẫn, màn kết thúc | Overlay trong `index.html` và `src/render/main.ts` |
 | 7 | Làm hình đẹp hơn, không dùng asset ngoài | `src/render/models.ts`, đom đóm giữ nguyên không nhấp nháy |
 | 8 | Hoàn thiện giấy tờ nộp bài | LICENSE, CREDITS, README, tag |
+| 9 | Thêm chức năng lướt (phím F) qua Bóng Mực không mất lửa | Lướt trong lõi sim + 8 test mới, vệt sáng và HUD hồi chiêu |
+| 10 | Thêm lốc xoáy càn quét: thời gian ngẫu nhiên, dải đỏ cảnh báo, giết Bóng Mực | Lốc xoáy trong sim (tắt trong headless), 14 test, dải đỏ + banner + viền đỏ + mô hình phễu |
 
 ## Kiểm chứng kết quả AI
 - Không tin "đã chạy": mọi thay đổi lõi chạy `npm test` và `npm run typecheck`; bằng chứng lưu ở `docs/proof/`.

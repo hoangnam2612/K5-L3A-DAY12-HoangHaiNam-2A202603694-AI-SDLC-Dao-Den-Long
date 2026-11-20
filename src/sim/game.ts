@@ -13,6 +13,15 @@ import type {
 interface Mote { id: string; pos: Vec3 }
 interface Lantern { id: string; pos: Vec3; deposited: number; lit: boolean }
 interface Shade { id: string; pos: Vec3; state: ShadeState; stun_left: number }
+export interface GameOptions { tornado?: boolean }
+export interface Tornado {
+  phase: "idle" | "warn" | "sweep";
+  ticks_left: number;
+  total_ticks: number;
+  start: [number, number];
+  end: [number, number];
+  pos: [number, number];
+}
 
 const DT = 1 / W.tick_rate;
 const r3 = (n: number) => Math.round(n * 1000) / 1000 + 0; // +0 tránh -0
@@ -25,7 +34,7 @@ export class Game {
   score = 0;
   events: GameEvent[] = [];
 
-  player = { pos: [0, 0, 0] as Vec3, vy: 0, carried: 0, flames: T.flames as number, invuln: 0, pulse_cd: 0 };
+  player = { pos: [0, 0, 0] as Vec3, vy: 0, carried: 0, flames: T.flames as number, invuln: 0, pulse_cd: 0, dash_ticks: 0, dash_cd: 0, face: [0, 1] as [number, number] };
   lanterns: Lantern[] = [];
   motes: Mote[] = [];
   shades: Shade[] = [];
@@ -40,8 +49,17 @@ export class Game {
   private randomShades: boolean;
   private nextSpawnAt: number;
 
-  constructor(seed: number, scenario: Scenario = {}, frames: InputFrame[] = []) {
+  /** Lốc xoáy (Sáng tạo). null khi tắt, và luôn tắt trong headless để không phá Test Contract. */
+  tornado: Tornado | null = null;
+  private tornadoRng: (() => number) | null = null;
+
+  constructor(seed: number, scenario: Scenario = {}, frames: InputFrame[] = [], options: GameOptions = {}) {
     this.rng = makeRng(seed);
+    if (options.tornado) {
+      // Dòng ngẫu nhiên riêng, không đụng vào dòng chính của sim.
+      this.tornadoRng = makeRng((seed ^ 0x9e3779b9) >>> 0);
+      this.tornado = { phase: "idle", ticks_left: this.randomTornadoWait(), total_ticks: 0, start: [0, 0], end: [0, 0], pos: [0, 0] };
+    }
     this.frames = frames;
     this.startTime = scenario.time_left_s ?? T.night1_duration_s;
     this.nextSpawnAt = W.random_shade_interval_s;
@@ -113,13 +131,13 @@ export class Game {
   step() {
     if (this.state !== "playing") return;
     const k = this.steps;
-    const prev = { jump: this.input.jump, interact: this.input.interact, pulse: this.input.pulse };
+    const prev = { jump: this.input.jump, interact: this.input.interact, pulse: this.input.pulse, dash: this.input.dash };
     while (this.frameIdx < this.frames.length && this.frames[this.frameIdx]!.tick <= k) {
       const { tick: _t, ...rest } = this.frames[this.frameIdx]!;
       this.input = { ...this.input, ...rest };
       this.frameIdx++;
     }
-    const press = (key: "jump" | "interact" | "pulse") => this.input[key] && !prev[key];
+    const press = (key: "jump" | "interact" | "pulse" | "dash") => this.input[key] && !prev[key];
 
     this.steps++; // event trong bước này mang tick = k+1
     const p = this.player;
@@ -131,8 +149,21 @@ export class Game {
     const th = (this.input.cam_yaw_deg * Math.PI) / 180;
     const wx = mx * Math.cos(th) + mz * Math.sin(th);
     const wz = -mx * Math.sin(th) + mz * Math.cos(th);
-    p.pos[0] += wx * T.player_speed * DT;
-    p.pos[2] += wz * T.player_speed * DT;
+    const wl = Math.hypot(wx, wz);
+    if (wl > 0) p.face = [wx / wl, wz / wl];
+    // Lướt (Sáng tạo): lao nhanh theo hướng đang đi (hoặc hướng nhìn), bất tử trong lúc lướt.
+    p.dash_cd = Math.max(0, p.dash_cd - DT);
+    if (press("dash") && p.dash_ticks === 0 && p.dash_cd <= 0) {
+      p.dash_ticks = Math.round(T.dash_duration_s * W.tick_rate);
+      p.dash_cd = T.dash_cooldown_s;
+    }
+    if (p.dash_ticks > 0) {
+      p.pos[0] += p.face[0] * T.dash_speed * DT;
+      p.pos[2] += p.face[1] * T.dash_speed * DT;
+    } else {
+      p.pos[0] += wx * T.player_speed * DT;
+      p.pos[2] += wz * T.player_speed * DT;
+    }
     const pr = Math.hypot(p.pos[0], p.pos[2]);
     if (pr > W.island_radius) { // chặn ở mép đảo (fall_enabled = false)
       p.pos[0] *= W.island_radius / pr;
@@ -215,21 +246,13 @@ export class Game {
         }
       }
     }
+    this.stepTornado();
     // Va chạm
-    if (p.invuln <= 0) {
+    if (p.invuln <= 0 && p.dash_ticks === 0) {
       const hit = this.shades.find((s) => s.state === "chase" && dist(p.pos, s.pos) <= T.shade_hit_radius);
-      if (hit) {
-        p.flames--;
-        p.invuln = T.invuln_s;
-        const dropped = Math.floor(p.carried * T.hit_drop_ratio);
-        p.carried -= dropped;
-        for (let i = 0; i < dropped; i++) {
-          const a = this.rng() * Math.PI * 2;
-          this.addMote([p.pos[0] + Math.cos(a) * 2, 0, p.pos[2] + Math.sin(a) * 2]);
-        }
-        this.emit("player_hit", { by: "shade", flames: p.flames, dropped });
-      }
+      if (hit) this.damagePlayer("shade");
     }
+    if (p.dash_ticks > 0) p.dash_ticks--;
     // Spawn Bóng Mực ngẫu nhiên theo thời gian
     const elapsed = this.steps / W.tick_rate;
     if (this.randomShades && elapsed >= this.nextSpawnAt && this.shades.length < W.random_shade_max) {
@@ -243,6 +266,67 @@ export class Game {
       this.finish("won", "all_lit");
     } else if (p.flames <= 0) this.finish("lost", "no_flames");
     else if (this.timeLeft <= 0) this.finish("lost", "dawn");
+  }
+
+  private damagePlayer(by: "shade" | "tornado") {
+    const p = this.player;
+    p.flames--;
+    p.invuln = T.invuln_s;
+    const dropped = Math.floor(p.carried * T.hit_drop_ratio);
+    p.carried -= dropped;
+    for (let i = 0; i < dropped; i++) {
+      const a = this.rng() * Math.PI * 2;
+      this.addMote([p.pos[0] + Math.cos(a) * 2, 0, p.pos[2] + Math.sin(a) * 2]);
+    }
+    this.emit("player_hit", { by, flames: p.flames, dropped });
+  }
+
+  private randomTornadoWait(): number {
+    const r = this.tornadoRng!;
+    return Math.round((W.tornado_wait_min_s + r() * (W.tornado_wait_max_s - W.tornado_wait_min_s)) * W.tick_rate);
+  }
+
+  /** Lốc xoáy: chờ ngẫu nhiên, cảnh báo dải đỏ, rồi càn quét dọc dải. Chỉ chạy khi bật option. */
+  private stepTornado() {
+    const tn = this.tornado;
+    if (!tn || !this.tornadoRng) return;
+    tn.ticks_left--;
+    if (tn.phase === "idle") {
+      if (tn.ticks_left > 0) return;
+      const r = this.tornadoRng;
+      const a = r() * Math.PI * 2;
+      const off = (r() * 2 - 1) * 0.6 * W.island_radius;
+      const d = [Math.cos(a), Math.sin(a)] as const;
+      const c = [-d[1] * off, d[0] * off] as const;
+      tn.start = [c[0] - d[0] * W.tornado_half_len, c[1] - d[1] * W.tornado_half_len];
+      tn.end = [c[0] + d[0] * W.tornado_half_len, c[1] + d[1] * W.tornado_half_len];
+      tn.pos = [...tn.start];
+      tn.phase = "warn";
+      tn.total_ticks = tn.ticks_left = Math.round(W.tornado_warn_s * W.tick_rate);
+      this.emit("tornado_warning", { start: tn.start.map(r3), end: tn.end.map(r3), width: W.tornado_band_width });
+    } else if (tn.phase === "warn") {
+      if (tn.ticks_left > 0) return;
+      tn.phase = "sweep";
+      tn.total_ticks = tn.ticks_left = Math.round(W.tornado_sweep_s * W.tick_rate);
+      this.emit("tornado_sweep", {});
+    } else {
+      const prog = 1 - tn.ticks_left / tn.total_ticks;
+      tn.pos = [tn.start[0] + (tn.end[0] - tn.start[0]) * prog, tn.start[1] + (tn.end[1] - tn.start[1]) * prog];
+      const radius = W.tornado_band_width / 2;
+      const p = this.player;
+      if (p.invuln <= 0 && p.dash_ticks === 0 && Math.hypot(p.pos[0] - tn.pos[0], p.pos[2] - tn.pos[1]) <= radius) {
+        this.damagePlayer("tornado");
+      }
+      this.shades = this.shades.filter((s) => {
+        if (Math.hypot(s.pos[0] - tn.pos[0], s.pos[2] - tn.pos[1]) > radius) return true;
+        this.emit("shade_killed", { id: s.id, by: "tornado" });
+        return false;
+      });
+      if (tn.ticks_left <= 0) {
+        tn.phase = "idle";
+        tn.ticks_left = this.randomTornadoWait();
+      }
+    }
   }
 
   private finish(state: "won" | "lost", reason: "all_lit" | "dawn" | "no_flames") {

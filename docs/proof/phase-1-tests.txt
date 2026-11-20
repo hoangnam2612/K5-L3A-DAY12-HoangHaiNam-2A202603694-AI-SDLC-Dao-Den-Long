@@ -8,6 +8,20 @@
  ✓ tests/contract.test.ts > headless > nhặt đom đóm trong pickup_radius, event có tick = k+1
  ✓ tests/contract.test.ts > headless > nạp đủ lantern_cost thì đèn sáng và thắng khi sáng hết
  ✓ tests/contract.test.ts > headless > input sai định dạng ném InputError (CLI thoát mã 2)
+ ✓ tests/tornado.test.ts > lốc xoáy: tắt mặc định, không phá contract > mặc định không có lốc xoáy
+ ✓ tests/tornado.test.ts > lốc xoáy: tắt mặc định, không phá contract > headless không bao giờ có sự kiện lốc xoáy, kể cả chạy rất lâu
+ ✓ tests/tornado.test.ts > lốc xoáy: tắt mặc định, không phá contract > bật lốc xoáy không làm đổi dòng ngẫu nhiên chính (cùng bố cục đom đóm)
+ ✓ tests/tornado.test.ts > lốc xoáy: chu trình và cảnh báo > chờ ngẫu nhiên trong khoảng cho phép rồi cảnh báo đúng warn_s trước khi quét
+ ✓ tests/tornado.test.ts > lốc xoáy: chu trình và cảnh báo > thời gian chờ khác nhau giữa các seed và giữa các lần quét
+ ✓ tests/tornado.test.ts > lốc xoáy: chu trình và cảnh báo > phát sự kiện cảnh báo kèm đường quét, rồi sự kiện càn quét
+ ✓ tests/tornado.test.ts > lốc xoáy: chu trình và cảnh báo > tất định theo seed
+ ✓ tests/tornado.test.ts > lốc xoáy: chu trình và cảnh báo > sau khi quét xong thì quay về chờ và quét lại
+ ✓ tests/tornado.test.ts > lốc xoáy: sát thương > Bóng Mực bị lốc xoáy quét trúng thì chết
+ ✓ tests/tornado.test.ts > lốc xoáy: sát thương > Bóng Mực ngoài dải quét thì không sao
+ ✓ tests/tornado.test.ts > lốc xoáy: sát thương > Mây bị lốc xoáy quét trúng thì mất 1 ngọn lửa và rơi đom đóm
+ ✓ tests/tornado.test.ts > lốc xoáy: sát thương > Mây đứng ngoài dải thì không sao
+ ✓ tests/tornado.test.ts > lốc xoáy: sát thương > lướt (bất tử) xuyên qua lốc xoáy thì không mất lửa
+ ✓ tests/tornado.test.ts > lốc xoáy: sát thương > nằm trên đường quét trong lúc cảnh báo thì chưa bị gì
  ✓ tests/rules.test.ts > di chuyển và quy ước input > đi thẳng 1 s ở tốc độ player_speed
  ✓ tests/rules.test.ts > di chuyển và quy ước input > vector dài hơn 1 được chuẩn hóa
  ✓ tests/rules.test.ts > di chuyển và quy ước input > cam_yaw_deg 90 quay hướng đi: move [0,1] thành +X
@@ -39,9 +53,17 @@
  ✓ tests/rules.test.ts > scenario > đèn không nhắc tới giữ nguyên; có pos thì đổi vị trí
  ✓ tests/rules.test.ts > scenario > snapshot-every và --ticks: đúng N bước, snapshot 0 trước input
  ✓ tests/rules.test.ts > scenario > seed khác nhau cho bố cục ngẫu nhiên khác nhau, cùng seed thì giống hệt
+ ✓ tests/rules.test.ts > lướt (dash, phím F) > lướt theo hướng đang đi trong dash_duration_s với dash_speed
+ ✓ tests/rules.test.ts > lướt (dash, phím F) > đứng yên thì lướt theo hướng nhìn gần nhất (mặc định +Z)
+ ✓ tests/rules.test.ts > lướt (dash, phím F) > không mất ngọn lửa khi lướt qua Bóng Mực, nhưng bị trúng nếu không lướt
+ ✓ tests/rules.test.ts > lướt (dash, phím F) > hết lướt thì lại có thể bị trúng
+ ✓ tests/rules.test.ts > lướt (dash, phím F) > tôn trọng dash_cooldown_s
+ ✓ tests/rules.test.ts > lướt (dash, phím F) > giữ nút không lướt lại (kích hoạt khi false sang true)
+ ✓ tests/rules.test.ts > lướt (dash, phím F) > vẫn bị chặn ở mép đảo khi lướt
+ ✓ tests/rules.test.ts > lướt (dash, phím F) > không có input dash thì hành vi cũ không đổi (giữ tương thích contract)
 
- Test Files  2 passed (2)
-      Tests  38 passed (38)
-   Start at  15:27:24
-   Duration  2.89s (transform 1.90s, setup 0ms, collect 2.16s, tests 99ms, environment 0ms, prepare 2.18s)
+ Test Files  3 passed (3)
+      Tests  60 passed (60)
+   Start at  15:46:59
+   Duration  646ms (transform 172ms, setup 0ms, collect 338ms, tests 216ms, environment 1ms, prepare 396ms)
 

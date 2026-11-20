@@ -20,6 +20,10 @@ export const TUNING = {
   shade_speed: 3.5, // m/s
   shade_hit_radius: 1.2,
   fall_enabled: false,
+  // Chức năng sáng tạo: lướt (phím F). Không có trong contract gốc nên đặt riêng.
+  dash_speed: 18, // m/s
+  dash_duration_s: 0.25, // bất tử trong lúc lướt
+  dash_cooldown_s: 1.5,
   score: {
     per_mote: 10,
     per_lantern: 100,
@@ -41,4 +45,11 @@ export const WORLD = {
   random_shade_max: 6,
   random_shade_interval_s: 20,
   tick_rate: 60,
+  // Lốc xoáy (chỉ bật trong game có giao diện, tắt trong headless).
+  tornado_wait_min_s: 12,
+  tornado_wait_max_s: 25,
+  tornado_warn_s: 3,
+  tornado_sweep_s: 2.2,
+  tornado_band_width: 7,
+  tornado_half_len: 50,
 } as const;

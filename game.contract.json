@@ -24,6 +24,9 @@
     "shade_speed": 3.5,
     "shade_hit_radius": 1.2,
     "fall_enabled": false,
+    "dash_speed": 18,
+    "dash_duration_s": 0.25,
+    "dash_cooldown_s": 1.5,
     "score": {
       "per_mote": 10,
       "per_lantern": 100,

@@ -21,6 +21,7 @@ Mở địa chỉ Vite in ra (mặc định http://localhost:5173). Cần Node 2
 | Space | Nhảy |
 | E | Nạp ánh sáng vào đèn gần nhất |
 | Q | Xung sáng (Pulse): đẩy và làm choáng Bóng Mực |
+| F | Lướt: lao nhanh theo hướng đang đi, bất tử trong lúc lướt (hồi 1,5 s) |
 | R | Chơi lại |
 
 ## Luật chơi và điểm
@@ -43,8 +44,10 @@ Tham số: `--seed --night 1 [--scenario f.json] [--inputs f.json] --ticks --out
 
 ## Sáng tạo của tôi
 
-Các phần thêm ngoài PRD-0, đều chỉ nằm ở lớp hiển thị (`src/render/`), không ảnh hưởng lõi sim, headless và contract:
+Các phần thêm ngoài PRD-0. Lướt và lốc xoáy nằm trong lõi sim; các mục còn lại chỉ ở lớp hiển thị (`src/render/`). Headless không bị ảnh hưởng: lốc xoáy tắt, và input không có `dash` thì hành vi y như trước:
 - Màn hình mở đầu có cốt truyện, hướng dẫn chơi, điều khiển, cách tính điểm; màn kết thúc thắng/thua có điểm và nút chơi lại.
+- Lướt (phím F): lao 4,5 m trong 0,25 s, xuyên qua Bóng Mực mà không mất ngọn lửa; hồi 1,5 s. Có trong lõi sim và headless (input `dash` đúng như contract cho phép), có vệt sáng khi lướt. Số liệu ở `tuning` (`dash_speed`, `dash_duration_s`, `dash_cooldown_s`). Input không có `dash` thì hành vi y như trước.
+- Lốc xoáy càn quét: cách một khoảng thời gian **ngẫu nhiên** (12 đến 25 s) lại có một đợt. Trước khi quét 3 giây hiện **dải đỏ** nhấp nháy trên đường quét, banner và viền đỏ cảnh báo, rồi lốc xoáy lao dọc dải trong 2,2 s. Bóng Mực bị quét trúng thì chết; Mây bị quét trúng thì mất 1 ngọn lửa (lướt xuyên qua an toàn). **Chỉ bật trong game có giao diện**; headless luôn tắt (đúng yêu cầu "thực thể mới tắt trong headless"), nên contract không đổi. Logic ở `src/sim/game.ts` (option `tornado`), test ở `tests/tornado.test.ts`.
 - Mô hình nhân vật Mây (mũ có đèn nhỏ), Bóng Mực có đuôi khói và đôi mắt sáng, đèn lồng giấy sáng dần theo mức nạp, cây, đá, nấm, bầu trời sao. Tất cả dựng bằng code, không dùng asset ngoài.
 
-Bằng chứng lõi vẫn đúng: `npm test` (38 test) và `docs/proof/`.
+Bằng chứng lõi vẫn đúng: `npm test` (60 test) và `docs/proof/`.
