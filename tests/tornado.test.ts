@@ -102,16 +102,22 @@ describe("lốc xoáy: sát thương", () => {
     const mid = [(start[0] + end[0]) / 2, (start[1] + end[1]) / 2];
     const far = W.tornado_band_width;
     g.shades[0]!.pos = [mid[0]! + nx * far, 1, mid[1]! + nz * far];
-    g.shades[0]!.state = "stunned"; g.shades[0]!.stun_left = 99; // đứng yên
+    g.shades[0]!.state = "stunned"; g.shades[0]!.ticks = 9999; // đứng yên
     for (let i = 0; i < 400; i++) g.step();
     expect(g.shades).toHaveLength(1);
   });
-  it("Mây bị lốc xoáy quét trúng thì mất 1 ngọn lửa và rơi đom đóm", () => {
+  const midOfPath = (g: Game) => {
+    const { start, end } = g.tornado!;
+    return [(start[0] + end[0]) / 2, 0, (start[1] + end[1]) / 2] as [number, number, number];
+  };
+  it("Mây bị lốc xoáy quét trúng thì mất 1 ngọn lửa và rơi đom đóm (như bị Mực đen bắt)", () => {
     const g = withTornado(1, sc());
     g.shades.length = 0;
-    sweep(g, (gm) => { if (gm.tornado!.ticks_left === gm.tornado!.total_ticks) gm.player.pos = onTornado(gm, 0); }); // đặt Mây vào đầu lốc xoáy ở bước đầu
+    advanceTo(g, "warn");
+    g.player.pos = midOfPath(g); // đứng giữa đường quét
+    advanceTo(g, "idle");
     const hits = g.events.filter((e) => e.name === "player_hit");
-    expect(hits).toHaveLength(1); // bất tử ngắn sau đòn, không mất liên tiếp
+    expect(hits).toHaveLength(1); // chỉ 1 lần: sau đòn có bất tử 90 tick
     expect(hits[0]!.data).toMatchObject({ by: "tornado", flames: 2, dropped: 2 });
   });
   it("Mây đứng ngoài dải thì không sao", () => {
@@ -125,10 +131,13 @@ describe("lốc xoáy: sát thương", () => {
     advanceTo(g, "idle");
     expect(g.player.flames).toBe(3);
   });
-  it("lướt (bất tử) xuyên qua lốc xoáy thì không mất lửa", () => {
+  it("Mây đang bất tử thì không mất lửa (lướt KHÔNG còn bất tử từ Phase 2)", () => {
     const g = withTornado(1, sc());
     g.shades.length = 0;
-    sweep(g, (gm) => { gm.player.pos = onTornado(gm, 0); gm.player.dash_ticks = 5; });
+    advanceTo(g, "warn");
+    g.player.pos = midOfPath(g);
+    g.player.invuln = 500;
+    advanceTo(g, "idle");
     expect(g.events.filter((e) => e.name === "player_hit")).toHaveLength(0);
     expect(g.player.flames).toBe(3);
   });

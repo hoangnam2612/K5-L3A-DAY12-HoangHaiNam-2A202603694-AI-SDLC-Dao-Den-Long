@@ -26,7 +26,7 @@ function readJson(path: string, what: string): unknown {
 try {
   const seed = intArg("seed");
   const night = intArg("night", 1);
-  if (night !== 1) throw new Error("Phase 1 chỉ hỗ trợ --night 1");
+  if (night !== 1 && night !== 2 && night !== 3) throw new Error("--night phải là 1, 2 hoặc 3");
   const ticks = intArg("ticks");
   const snapshotEvery = intArg("snapshot-every", 10);
   if (ticks < 0 || snapshotEvery < 1) throw new Error("--ticks >= 0 và --snapshot-every >= 1");
@@ -36,7 +36,7 @@ try {
   const ip = arg("inputs");
   const scenario = sp ? parseScenario(readJson(sp, "scenario")) : undefined;
   const frames = ip ? parseInputs(readJson(ip, "inputs")) : undefined;
-  const lines = runHeadless({ seed, ticks, snapshotEvery, scenario, frames });
+  const lines = runHeadless({ seed, ticks, snapshotEvery, night: night as 1 | 2 | 3, scenario, frames });
   writeFileSync(out, lines.join("\n") + "\n");
 } catch (e) {
   console.error(`lỗi: ${(e as Error).message}`);
