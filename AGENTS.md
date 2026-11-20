@@ -1,24 +1,23 @@
 # AGENTS.md: Đảo Đèn Lồng
 
-Game 3D (TypeScript + Three.js + Vite) kèm chế độ headless theo Test Contract v1.0. Đề: `docs/LAB.md`, các phase xem lab board.
+Game 3D (TypeScript + Three.js + Vite) kèm chế độ headless theo Test Contract (hiện v1.1). Đề: `docs/LAB.md`; ticket Phase 2: `docs/spec/phase-2.md`.
 
 ## Lệnh
-- `npm install`: cài
-- `npm run dev`: chạy game
-- `npm test`: Vitest (contract, tính tất định, luật chơi)
-- `npm run typecheck`
-- `npm run headless -- --seed 1 --night 1 --ticks 600 --out out/run.jsonl`
+- `npm install`, `npm run dev`, `npm test` (Vitest), `npm run typecheck`, `npm run bench`
+- `npm run headless -- --seed 1 --night 1 --ticks 600 --out out/run.jsonl` (`--night` 1, 2, 3)
 
 ## Quy tắc kiến trúc
-- **Luật chơi chỉ nằm ở `src/sim/`**, thuần logic, không import `three`/DOM/`Math.random`. Ngẫu nhiên chỉ qua `makeRng(seed)`.
-- `src/render/` chỉ đọc trạng thái sim để vẽ. `src/headless/` chỉ gọi sim.
-- Số liệu game chỉ ở `src/sim/tuning.ts`. Đổi số thì cập nhật `game.contract.json` (test sẽ báo lệch).
-- Tính tất định là bắt buộc: không dùng thời gian thực, thứ tự lặp phải cố định.
-- Đơn vị mét, Y lên, tọa độ output làm tròn 3 số lẻ, khoảng cách tính trên XZ, "trong r" là `<= r`.
-- Tính năng sáng tạo thêm phải tắt được trong headless và không phá contract.
+- **Luật chơi chỉ nằm ở `src/sim/`**, thuần logic, không import `three`/DOM, không `Math.random`/thời gian thực. Ngẫu nhiên chỉ qua `makeRng(seed)`; mỗi hệ có dòng ngẫu nhiên riêng để thêm tính năng không đổi dòng khác.
+- `src/render/` chỉ đọc trạng thái sim; `src/headless/` chỉ gọi sim.
+- Số chuẩn chỉ ở `src/sim/tuning.ts`; đổi thì cập nhật `game.contract.json` (test báo lệch). Bản đồ chuẩn chỉ ở `src/sim/maps.ts`, địa hình ở `src/sim/terrain.ts`.
+- **Thứ tự xử lý trong một tick là bắt buộc** (xem đầu `docs/spec/phase-2.md`); đừng đổi thứ tự trong `Game.step`.
+- Đơn vị mét/giây, Y lên, 60 tick/s; output làm tròn 3 số lẻ; "trong r" là `<= r`.
+- Sáng tạo (lốc xoáy, hiệu ứng, âm thanh) phải tắt được trong headless và không đổi đầu ra headless.
+- Không dùng asset ngoài; âm thanh tổng hợp bằng WebAudio.
 
 ## Quy trình
-1. Đổi hành vi thì viết/cập nhật test trước, chạy `npm test` và `npm run typecheck` trước khi báo xong.
-2. "Chạy rồi" không phải bằng chứng: lưu kết quả vào `docs/proof/`.
-3. Giả định cho chỗ mơ hồ ghi vào `docs/notes/assumptions.md`; dùng AI ghi vào `docs/notes/ai-log.md`.
-4. Không commit `.env`, key, token. Tag `phase-N` khi xong mỗi phase.
+1. Đổi hành vi: cập nhật `docs/spec/phase-2.md` (AC) → viết scenario/test → sửa code → `npm test` và `npm run typecheck`.
+2. Mỗi tính năng mới cần ít nhất 1 scenario headless (test) và bằng chứng ở `docs/proof/`.
+3. Test cũ bị luật mới làm sai: sửa hoặc bỏ **kèm lý do** ghi trong `docs/proof/phase-2.md`.
+4. Giả định cho chỗ mơ hồ ghi ở `docs/notes/assumptions.md`; dùng AI ghi ở `docs/notes/ai-log.md`.
+5. Không commit `.env`, key, token. Tag `phase-N` khi xong mỗi phase.
