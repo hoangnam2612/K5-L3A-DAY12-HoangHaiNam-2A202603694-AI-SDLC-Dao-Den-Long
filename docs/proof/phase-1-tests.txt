@@ -1,0 +1,47 @@
+
+ RUN  v2.1.9 D:/VinUni/Lab/Lab12/K5-L3A-DAY12-HoangHaiNam-2A202603694-AI-SDLC-Dao-Den-Long
+
+ ✓ tests/contract.test.ts > game.contract.json > khớp TUNING trong code
+ ✓ tests/contract.test.ts > headless > tất định: cùng seed/scenario/inputs cho output giống hệt
+ ✓ tests/contract.test.ts > headless > snapshot đầu ở tick 0, dòng cuối là end
+ ✓ tests/contract.test.ts > headless > time_left_s = thời lượng - bước/60
+ ✓ tests/contract.test.ts > headless > nhặt đom đóm trong pickup_radius, event có tick = k+1
+ ✓ tests/contract.test.ts > headless > nạp đủ lantern_cost thì đèn sáng và thắng khi sáng hết
+ ✓ tests/contract.test.ts > headless > input sai định dạng ném InputError (CLI thoát mã 2)
+ ✓ tests/rules.test.ts > di chuyển và quy ước input > đi thẳng 1 s ở tốc độ player_speed
+ ✓ tests/rules.test.ts > di chuyển và quy ước input > vector dài hơn 1 được chuẩn hóa
+ ✓ tests/rules.test.ts > di chuyển và quy ước input > cam_yaw_deg 90 quay hướng đi: move [0,1] thành +X
+ ✓ tests/rules.test.ts > di chuyển và quy ước input > trường vắng mặt giữ giá trị cũ
+ ✓ tests/rules.test.ts > di chuyển và quy ước input > nhảy lên rồi chạm đất, mặt đất ở Y = 0
+ ✓ tests/rules.test.ts > di chuyển và quy ước input > giữ nút nhảy không nhảy lại (kích hoạt khi false sang true)
+ ✓ tests/rules.test.ts > di chuyển và quy ước input > bị chặn ở mép đảo (fall_enabled=false)
+ ✓ tests/rules.test.ts > đom đóm > nhặt đúng ở biên pickup_radius (<=)
+ ✓ tests/rules.test.ts > đom đóm > không nhặt khi ngoài pickup_radius
+ ✓ tests/rules.test.ts > đom đóm > đầy carry_capacity thì không nhặt thêm
+ ✓ tests/rules.test.ts > đèn lồng > nạp đúng ở biên interact_radius (<=)
+ ✓ tests/rules.test.ts > đèn lồng > ngoài interact_radius thì không nạp
+ ✓ tests/rules.test.ts > đèn lồng > nạp dở rồi nạp tiếp mới sáng, cộng điểm đúng một lần
+ ✓ tests/rules.test.ts > đèn lồng > giữ nút interact chỉ nạp một lần
+ ✓ tests/rules.test.ts > đèn lồng > thắng: cộng điểm thời gian còn lại và ngọn lửa còn lại
+ ✓ tests/rules.test.ts > Pulse > làm choáng, đẩy bóng ra xa, trừ đom đóm, cộng per_stun
+ ✓ tests/rules.test.ts > Pulse > bóng đúng ở biên pulse_radius (<=) bị choáng, ngoài biên thì không
+ ✓ tests/rules.test.ts > Pulse > không đủ pulse_cost thì không phát
+ ✓ tests/rules.test.ts > Pulse > tôn trọng pulse_cooldown_s
+ ✓ tests/rules.test.ts > Pulse > hết choáng sau pulse_stun_s thì đuổi lại
+ ✓ tests/rules.test.ts > Bóng Mực và va chạm > trúng đòn: mất 1 lửa, rơi đom đóm theo hit_drop_ratio, bất tử tạm thời
+ ✓ tests/rules.test.ts > Bóng Mực và va chạm > hết invuln_s thì bị trúng tiếp
+ ✓ tests/rules.test.ts > Bóng Mực và va chạm > hết lửa thì thua với lý do no_flames
+ ✓ tests/rules.test.ts > Bóng Mực và va chạm > bóng không vào được safe_radius quanh đèn
+ ✓ tests/rules.test.ts > Bóng Mực và va chạm > hết đêm thì thua với lý do dawn
+ ✓ tests/rules.test.ts > Bóng Mực và va chạm > sinh bóng ngẫu nhiên mỗi 20 s với id tiếp theo
+ ✓ tests/rules.test.ts > scenario > dựng scenario không phát event và không cộng điểm
+ ✓ tests/rules.test.ts > scenario > motes/shades là danh sách thay thế; mảng rỗng nghĩa là không có
+ ✓ tests/rules.test.ts > scenario > đèn không nhắc tới giữ nguyên; có pos thì đổi vị trí
+ ✓ tests/rules.test.ts > scenario > snapshot-every và --ticks: đúng N bước, snapshot 0 trước input
+ ✓ tests/rules.test.ts > scenario > seed khác nhau cho bố cục ngẫu nhiên khác nhau, cùng seed thì giống hệt
+
+ Test Files  2 passed (2)
+      Tests  38 passed (38)
+   Start at  15:27:24
+   Duration  2.89s (transform 1.90s, setup 0ms, collect 2.16s, tests 99ms, environment 0ms, prepare 2.18s)
+

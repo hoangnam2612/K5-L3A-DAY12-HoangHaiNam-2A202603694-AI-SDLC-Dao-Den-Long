@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.idea/
+.env
+*.log
+out/
+*.jsonl
+!docs/proof/*.jsonl
+.claude/launch.json
