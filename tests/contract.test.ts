@@ -7,9 +7,11 @@ import { events, run, snaps } from "./helpers";
 
 const contract = JSON.parse(readFileSync("game.contract.json", "utf8"));
 
-describe("C1 game.contract.json v1.2", () => {
-  it("version 1.2 và tuning khớp số chuẩn trong code", () => {
-    expect(contract.contract_version).toBe("1.2");
+describe("C1 game.contract.json v1.3", () => {
+  it("version 1.3, có bench_cmd và soak_cmd, và tuning khớp số chuẩn trong code", () => {
+    expect(contract.contract_version).toBe("1.3");
+    expect(typeof contract.bench_cmd).toBe("string");
+    expect(typeof contract.soak_cmd).toBe("string");
     expect(contract.tuning).toEqual(TUNING);
   });
   it("có các khóa mới của v1.1 và v1.2 (Ticket-03)", () => {

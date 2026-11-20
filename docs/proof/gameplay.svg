@@ -1,0 +1,137 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720" font-family="system-ui, 'Segoe UI', sans-serif">
+  <defs>
+    <radialGradient id="sky" cx="50%" cy="40%" r="70%">
+      <stop offset="0%" stop-color="#1b2350"/>
+      <stop offset="100%" stop-color="#0e1430"/>
+    </radialGradient>
+    <radialGradient id="island" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#2f5d50"/>
+      <stop offset="85%" stop-color="#254a40"/>
+      <stop offset="100%" stop-color="#c9b48a"/>
+    </radialGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffe9b0" stop-opacity="0.95"/>
+      <stop offset="45%" stop-color="#ffb347" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#ffb347" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="mote" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fff6c2"/>
+      <stop offset="50%" stop-color="#ffe58a" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#ffe58a" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Nền bầu trời đêm & biển mây -->
+  <rect width="1280" height="720" fill="url(#sky)"/>
+  <g fill="#f5f1e6" opacity="0.75">
+    <circle cx="140" cy="80" r="1.5"/><circle cx="280" cy="50" r="2"/><circle cx="460" cy="95" r="1.5"/>
+    <circle cx="720" cy="60" r="1.8"/><circle cx="910" cy="110" r="1.4"/><circle cx="1120" cy="70" r="2"/>
+    <circle cx="1040" cy="150" r="1.2"/><circle cx="210" cy="160" r="1.4"/><circle cx="610" cy="130" r="1.6"/>
+  </g>
+
+  <!-- Mặt đảo 3D -->
+  <ellipse cx="640" cy="490" rx="540" ry="190" fill="#12384a" opacity="0.6"/>
+  <ellipse cx="640" cy="465" rx="460" ry="155" fill="url(#island)" stroke="#c9b48a" stroke-width="6"/>
+
+  <!-- Vòng vùng an toàn quanh Đèn Lồng Lớn L1 (6m) -->
+  <ellipse cx="640" cy="360" rx="150" ry="52" fill="none" stroke="#ffb347" stroke-width="3" stroke-dasharray="10 6" opacity="0.75"/>
+
+  <!-- Đèn Lồng Lớn L1 (đang sáng + thanh dầu) -->
+  <g transform="translate(640, 355)">
+    <circle cx="0" cy="-78" r="72" fill="url(#glow)"/>
+    <rect x="-6" y="-65" width="12" height="65" fill="#6b4a2f"/>
+    <ellipse cx="0" cy="0" rx="22" ry="8" fill="#6b6475"/>
+    <ellipse cx="0" cy="-78" rx="28" ry="34" fill="#ffb347" stroke="#3a2a22" stroke-width="2"/>
+    <polygon points="-24,-108 24,-108 0,-128" fill="#8a3b2c"/>
+    <!-- Thanh dầu trên đèn -->
+    <rect x="-38" y="-146" width="76" height="10" rx="4" fill="#0e1430" stroke="#f2c14e" stroke-width="1.5"/>
+    <rect x="-36" y="-144" width="62" height="6" rx="3" fill="#ffb347"/>
+  </g>
+
+  <!-- Đèn Lồng L2 (xa bên phải, đang sáng) -->
+  <g transform="translate(945, 415) scale(0.75)">
+    <circle cx="0" cy="-78" r="65" fill="url(#glow)"/>
+    <rect x="-6" y="-65" width="12" height="65" fill="#6b4a2f"/>
+    <ellipse cx="0" cy="-78" rx="28" ry="34" fill="#ffb347"/>
+    <polygon points="-24,-108 24,-108 0,-128" fill="#8a3b2c"/>
+  </g>
+
+  <!-- Bóng Mực (bên trái ngoài vùng an toàn) -->
+  <g transform="translate(365, 430)">
+    <ellipse cx="0" cy="-28" rx="30" ry="34" fill="#120a1a" stroke="#7a3cff" stroke-width="3.5"/>
+    <circle cx="-10" cy="-34" r="5.5" fill="#7a3cff"/>
+    <circle cx="10" cy="-34" r="5.5" fill="#7a3cff"/>
+  </g>
+
+  <!-- Các đom đóm trên đảo -->
+  <circle cx="520" cy="470" r="14" fill="url(#mote)"/>
+  <circle cx="770" cy="465" r="14" fill="url(#mote)"/>
+  <circle cx="830" cy="510" r="14" fill="url(#mote)"/>
+  <circle cx="480" cy="525" r="14" fill="url(#mote)"/>
+
+  <!-- Nhân vật Mây: có 2 chân, 2 tay, khăn quàng đỏ, đội nón lá + đèn nhỏ trên đỉnh nón -->
+  <g transform="translate(640, 495)">
+    <circle cx="0" cy="-75" r="85" fill="url(#glow)" opacity="0.65"/>
+    <!-- Hai chân + bàn chân -->
+    <rect x="-15" y="-28" width="10" height="24" rx="5" fill="#3a3248" transform="rotate(14 -10 -28)"/>
+    <rect x="-19" y="-7" width="14" height="7" rx="3" fill="#6b4a2f"/>
+    <rect x="5" y="-28" width="10" height="24" rx="5" fill="#3a3248" transform="rotate(-14 10 -28)"/>
+    <rect x="5" y="-7" width="14" height="7" rx="3" fill="#6b4a2f"/>
+    <!-- Thân áo -->
+    <polygon points="-16,-68 16,-68 23,-26 -23,-26" fill="#e8e2d0" stroke="#c9b48a" stroke-width="1.5"/>
+    <!-- Hai tay + bàn tay -->
+    <g transform="translate(-20, -64) rotate(22)">
+      <rect x="-6" y="0" width="11" height="24" rx="5" fill="#e8e2d0"/>
+      <circle cx="-0.5" cy="26" r="5.5" fill="#f3cfa5"/>
+    </g>
+    <g transform="translate(20, -64) rotate(-22)">
+      <rect x="-5" y="0" width="11" height="24" rx="5" fill="#e8e2d0"/>
+      <circle cx="0.5" cy="26" r="5.5" fill="#f3cfa5"/>
+    </g>
+    <!-- Khăn quàng đỏ -->
+    <ellipse cx="0" cy="-68" rx="18" ry="6" fill="#c8102e"/>
+    <polygon points="6,-65 16,-65 20,-44 8,-46" fill="#c8102e"/>
+    <!-- Đầu -->
+    <circle cx="0" cy="-86" r="17" fill="#f3cfa5"/>
+    <circle cx="-6" cy="-87" r="2.4" fill="#2a1a10"/>
+    <circle cx="6" cy="-87" r="2.4" fill="#2a1a10"/>
+    <!-- Nón lá rộng vành + đèn nhỏ trên đỉnh nón -->
+    <polygon points="-40,-96 40,-96 0,-124" fill="#c9b48a" stroke="#6b4a2f" stroke-width="2.5"/>
+    <line x1="-22" y1="-109" x2="22" y2="-109" stroke="#6b4a2f" stroke-width="1.8"/>
+    <line x1="0" y1="-124" x2="0" y2="-142" stroke="#6b4a2f" stroke-width="2.5"/>
+    <circle cx="0" cy="-146" r="16" fill="url(#mote)"/>
+    <circle cx="0" cy="-146" r="7.5" fill="#ffe9b0"/>
+  </g>
+
+  <!-- HUD: Ngọn lửa (trên trái) -->
+  <g transform="translate(24, 22)">
+    <circle cx="14" cy="16" r="11" fill="#ffb347"/>
+    <circle cx="42" cy="16" r="11" fill="#ffb347"/>
+    <circle cx="70" cy="16" r="11" fill="#ffb347"/>
+    <text x="0" y="52" fill="#f5f1e6" font-size="18" font-weight="600">Đêm 1 · Đảo Bến</text>
+    <text x="0" y="76" fill="#f5f1e6" font-size="15" font-family="Consolas, monospace" opacity="0.85">225 FPS · 1.00×</text>
+  </g>
+
+  <!-- HUD: Đồng hồ (trên giữa) -->
+  <text x="640" y="48" text-anchor="middle" fill="#f5f1e6" font-size="36" font-weight="700" font-family="Consolas, monospace">03:42</text>
+
+  <!-- HUD: Phụ đề / chỉ báo hình ảnh (giữa trên) -->
+  <g transform="translate(640, 88)">
+    <rect x="-195" y="-22" width="390" height="34" rx="17" fill="#0e1430" stroke="#f2c14e" stroke-width="1.5" opacity="0.9"/>
+    <text x="0" y="1" text-anchor="middle" fill="#f5f1e6" font-size="18" font-weight="600">⚠ Bóng Mực S3 vừa xuất hiện!</text>
+  </g>
+
+  <!-- HUD: Đèn & Điểm (trên phải) -->
+  <g transform="translate(1256, 34)" text-anchor="end">
+    <text x="0" y="0" fill="#ffb347" font-size="20" font-weight="700">Đèn 3/5</text>
+    <text x="0" y="34" fill="#f2c14e" font-size="32" font-weight="700" font-family="Consolas, monospace">460</text>
+    <text x="0" y="58" fill="#f5f1e6" font-size="18">Giữ ≥ 3 đèn sáng tới bình minh</text>
+  </g>
+
+  <!-- HUD: Nhắc châm dầu & Thanh đom đóm (dưới giữa) -->
+  <g transform="translate(640, 616)">
+    <rect x="-155" y="-24" width="310" height="36" rx="18" fill="#0e1430" stroke="#f2c14e" stroke-width="1.5"/>
+    <text x="0" y="0" text-anchor="middle" fill="#ffe9b0" font-size="18" font-weight="700">E — Châm dầu (82/100)</text>
+    <text x="0" y="42" text-anchor="middle" fill="#ffe9b0" font-size="18" font-weight="700" font-family="Consolas, monospace">6/16</text>
+  </g>
+</svg>

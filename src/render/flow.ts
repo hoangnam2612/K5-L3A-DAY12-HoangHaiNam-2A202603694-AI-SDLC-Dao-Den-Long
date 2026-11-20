@@ -1,5 +1,5 @@
-// Máy trạng thái luồng màn hình: Menu → giới thiệu Đêm → chơi → kết quả → Đêm kế → Bình Minh.
-export type Screen = "menu" | "intro" | "playing" | "paused" | "settings" | "result" | "dawn";
+// Máy trạng thái luồng màn hình: Menu → giới thiệu Đêm → chơi → kết quả → Đêm kế → Bình Minh (kèm Bảng xếp hạng).
+export type Screen = "menu" | "intro" | "playing" | "paused" | "settings" | "leaderboard" | "result" | "dawn";
 export type Night = 1 | 2 | 3;
 
 export const NIGHT_INFO: Record<Night, { title: string; island: string; elder: string }> = {
@@ -20,21 +20,46 @@ export const NIGHT_INFO: Record<Night, { title: string; island: string; elder: s
   },
 };
 
-export interface NightResult { night: Night; won: boolean; score: number; lanternsLit: number; lanternsTotal: number; flames: number; timeLeft: number; needed: number; reason: string }
+export interface NightResult {
+  night: Night;
+  won: boolean;
+  score: number;
+  lanternsLit: number;
+  lanternsTotal: number;
+  flames: number;
+  timeLeft: number;
+  needed: number;
+  reason: string;
+}
 
 export class Flow {
   screen: Screen = "menu";
   night: Night = 1;
   total = 0; // tổng điểm các Đêm đã thắng
+  nightsWon = 0; // số Đêm đã thắng (0..3)
+  runSeed = 1; // seed đại diện của lượt chơi
+  scoreSaved = false; // đã lưu điểm lượt này vào bảng xếp hạng chưa
   result: NightResult | null = null;
   private settingsFrom: Screen = "menu";
 
-  startGame() { this.night = 1; this.total = 0; this.result = null; this.screen = "intro"; }
+  startGame(seed = 1) {
+    this.night = 1;
+    this.total = 0;
+    this.nightsWon = 0;
+    this.runSeed = seed;
+    this.scoreSaved = false;
+    this.result = null;
+    this.screen = "intro";
+  }
   beginNight() { this.screen = "playing"; }
   /** Gọi khi sim báo thắng/thua. Thắng Đêm 3 thì tới màn Bình Minh. */
   onNightEnd(r: NightResult) {
     this.result = r;
-    if (r.won) this.total += r.score;
+    if (r.won) {
+      this.total += r.score;
+      this.nightsWon = Math.max(this.nightsWon, r.night);
+    }
+    this.scoreSaved = false;
     this.screen = r.won && r.night === 3 ? "dawn" : "result";
   }
   /** Từ màn kết quả: thắng thì sang Đêm kế (có giới thiệu); thua thì chơi lại Đêm đó. */
@@ -49,7 +74,9 @@ export class Flow {
   restartNight() { if (this.screen === "paused") this.screen = "playing"; }
   openSettings() { this.settingsFrom = this.screen; this.screen = "settings"; }
   closeSettings() { this.screen = this.settingsFrom === "paused" ? "paused" : "menu"; }
-  toMenu() { this.screen = "menu"; this.result = null; this.total = 0; }
+  openLeaderboard() { this.screen = "leaderboard"; }
+  closeLeaderboard() { this.screen = "menu"; }
+  toMenu() { this.screen = "menu"; this.result = null; this.total = 0; this.nightsWon = 0; this.scoreSaved = false; }
   /** Từ Bình Minh quay về menu. */
   finish() { this.toMenu(); }
 }

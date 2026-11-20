@@ -18,6 +18,7 @@ Công cụ: Claude Code (app desktop), mô hình Claude Sonnet 5.5. Harness: `AG
 | 11 | Phase 2: đọc Ticket-02 (dán từ lab board), phân tích khác biệt, hỏi chỗ mơ hồ, lập kế hoạch | Kế hoạch 7 bước B0-B6; giả định P1-P16; spec có AC ở docs/spec/phase-2.md |
 | 12 | Làm toàn bộ Ticket-02 | Viết lại lõi sim (3 Đêm, địa hình, Gió Lạc, Bùa, gió, pause, rơi đảo), contract v1.1, 168 test, GUI (menu, HUD, âm thanh WebAudio, 3 bản đồ) |
 | 13 | Phase 3: đọc Ticket-03 "Đèn cạn dầu" bằng ảnh chụp trình duyệt (nội dung nằm trong iframe), làm toàn bộ | Dầu đèn, châm dầu, Bóng Mực hút dầu, luật thắng bình minh, sức chứa, điểm mới, chế độ mù màu, contract v1.2; spec, ADR, changelog; test cũ sửa kèm lý do |
+| 14 | Phase 4: đọc Ticket-04 "Bình minh: Bản v1.0.0", hoàn thiện toàn bộ + nâng cấp nhân vật Mây có chân, tay và đội nón lá | Chế độ benchmark 200 Bóng Mực + 100 đom đóm (`bench.json`), soak test 10 Đêm (`soak.json`), bảng xếp hạng cục bộ + `--export-leaderboard`, dễ tiếp cận (đổi phím, phụ đề, giảm chuyển động, chữ lớn ×1.25), mô hình Mây có tay chân vung theo nhịp bước & nón lá, contract v1.3, 227 test, retro |
 
 ## Kiểm chứng kết quả AI
 - Không tin "đã chạy": mọi thay đổi lõi chạy `npm test` và `npm run typecheck`; bằng chứng lưu ở `docs/proof/`.

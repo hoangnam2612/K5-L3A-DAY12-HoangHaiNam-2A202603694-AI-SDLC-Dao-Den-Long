@@ -66,3 +66,14 @@ Ticket-03 thay các giá trị/luật: Phase 2 P5 (bóng `wander` đi ngẫu nhi
 | Q14 | Ngưỡng thắng | `ceil(0.6 × tổng đèn − 1e-9)` để tránh sai số số thực (3/5, 4/6, 5/7) |
 | Q15 | Điểm bình minh khi thua | Không cộng (ticket: "chỉ khi thắng") |
 | Q16 | Lốc xoáy (sáng tạo) | Không đổi: chỉ game có giao diện, không tương tác với dầu |
+
+# Giả định Phase 4 (Ticket-04 "Bình minh: Bản v1.0.0", Contract v1.3)
+
+| # | Điểm mơ hồ | Giả định |
+|---|---|---|
+| R1 | Chiều quay camera trong cảnh benchmark | Nhìn từ trên xuống (+Y nhìn xuống mặt phẳng XZ, +X sang phải, +Z hướng xuống): xuất phát ở góc 0° `(30, 15, 0)`, quay ngược chiều kim đồng hồ 15 s/vòng tương ứng `x = 30·cosθ, z = −30·sinθ` với `θ = (t / 15) × 2π` |
+| R2 | Phân bố 200 Bóng Mực và 100 đom đóm trong cảnh benchmark | Rải đều trên đĩa đảo Đêm 1 bằng lấy mẫu bán kính `r = √u · R` theo `makeRng(seed)`; Bóng Mực sinh trong vùng an toàn của `L1..L3` được đẩy ra mép `safe_radius + 0.5 m` ngay lúc dựng để không dồn cục ở tick đầu |
+| R3 | Lưu bảng xếp hạng trên đĩa cục bộ & trình duyệt | Khi chạy qua Vite (`run_cmd`), middleware `/api/leaderboard` đọc/ghi trực tiếp file `data/leaderboard.json` trên đĩa cục bộ và đồng bộ với `localStorage`; lệnh `<run_cmd> --export-leaderboard out.json` đọc từ `data/leaderboard.json` và xuất `{"entries": [...]}` đã sắp xếp đúng thứ tự |
+| R4 | Điều kiện lưu điểm bảng xếp hạng | Cho phép nhập tên lưu điểm sau màn Bình Minh (thắng Đêm 3) hoặc sau khi thua ở bất kỳ Đêm nào; `score` là tổng điểm các Đêm đã thắng trong lượt đó (`0` nếu thua ngay Đêm 1), `nights_won` từ `0` đến `3` |
+| R5 | Đổi phím & phím Esc | Người chơi đổi được toàn bộ 9 phím hành động (4 hướng di chuyển, nhảy, lướt, tương tác, tỏa sáng, tạm dừng); phím `Escape` luôn giữ vai trò dự phòng để mở tạm dừng / thoát khóa chuột |
+| R6 | Mô hình nhân vật Mây | Gốc tọa độ vẫn ở chân `(0,0,0)` của nhân vật để không ảnh hưởng mọi phép đo khoảng cách của sim; thêm đầy đủ 2 tay, 2 chân có bàn chân (hoạt ảnh vung tay/bước chân theo vận tốc) và nón lá truyền thống rộng vành có đèn nhỏ trên đỉnh |

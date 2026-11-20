@@ -6,34 +6,131 @@ const std = (color: number, emissive = 0x000000, extra: THREE.MeshLambertMateria
   new THREE.MeshLambertMaterial({ color, emissive, ...extra });
 const basic = (color: number, extra: THREE.MeshBasicMaterialParameters = {}) => new THREE.MeshBasicMaterial({ color, ...extra });
 
-/** Mây: áo, khăn, đầu, mũ có chiếc đèn nhỏ. Gốc tọa độ ở chân. */
-export function makePlayer(): THREE.Group {
+export interface PlayerModel {
+  group: THREE.Group;
+  leftArm: THREE.Group;
+  rightArm: THREE.Group;
+  leftLeg: THREE.Group;
+  rightLeg: THREE.Group;
+  hat: THREE.Group;
+}
+
+/** Mây: áo bà ba/áo choàng, khăn quàng đỏ, đầu, 2 tay, 2 chân có bàn chân, và đội nón lá rộng vành có chiếc đèn nhỏ. Gốc tọa độ ở chân. */
+export function makePlayer(): PlayerModel {
   const g = new THREE.Group();
-  const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.38, 0.5, 4, 12), std(P.shirt));
-  body.position.y = 0.65;
-  const scarf = new THREE.Mesh(new THREE.TorusGeometry(0.34, 0.1, 8, 16), std(P.scarf));
+  g.name = "player-may";
+
+  // Thân áo (hơi xòe ở tà dưới như áo dài/áo bà ba)
+  const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.34, 0.62, 14), std(P.shirt));
+  torso.position.y = 0.78;
+  torso.name = "torso";
+
+  // Khăn quàng đỏ + tà khăn sau lưng
+  const scarf = new THREE.Mesh(new THREE.TorusGeometry(0.26, 0.075, 8, 18), std(P.scarf));
   scarf.rotation.x = Math.PI / 2;
-  scarf.position.y = 1.08;
-  const head = new THREE.Mesh(new THREE.SphereGeometry(0.34, 16, 16), std(0xf3cfa5));
-  head.position.y = 1.4;
-  const eyeGeo = new THREE.SphereGeometry(0.045, 8, 8);
-  for (const sx of [-0.12, 0.12]) {
+  scarf.position.y = 1.1;
+  const scarfTail = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.32, 0.05), std(P.scarf));
+  scarfTail.position.set(0.08, 0.94, -0.26);
+  scarfTail.rotation.x = 0.25;
+
+  // Đầu và mắt
+  const skinMat = std(0xf3cfa5);
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.28, 16, 16), skinMat);
+  head.position.y = 1.38;
+  head.name = "head";
+  const eyeGeo = new THREE.SphereGeometry(0.04, 8, 8);
+  for (const sx of [-0.1, 0.1]) {
     const e = new THREE.Mesh(eyeGeo, basic(0x2a1a10));
-    e.position.set(sx, 1.42, 0.3);
+    e.position.set(sx, 1.4, 0.25);
     g.add(e);
   }
-  const hat = new THREE.Mesh(new THREE.ConeGeometry(0.4, 0.5, 16), std(0x9b3f2c));
-  hat.position.y = 1.85;
-  const brim = new THREE.Mesh(new THREE.CylinderGeometry(0.46, 0.46, 0.06, 20), std(0x7a2f20));
-  brim.position.y = 1.64;
-  const stick = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.35, 6), std(P.wood));
-  stick.position.y = 2.25;
-  const lamp = new THREE.Mesh(new THREE.SphereGeometry(0.13, 12, 12), basic(P.lanternCore));
-  lamp.position.y = 2.5;
-  const halo = new THREE.Mesh(new THREE.SphereGeometry(0.24, 12, 12), basic(P.lanternOn, { transparent: true, opacity: 0.35, depthWrite: false }));
-  halo.position.y = 2.5;
-  g.add(body, scarf, head, brim, hat, stick, lamp, halo);
-  return g;
+
+  // Hai tay (khớp vai ở y = 1.04 để xoay vung tay khi chạy)
+  const makeArm = (side: -1 | 1): THREE.Group => {
+    const arm = new THREE.Group();
+    arm.name = side < 0 ? "left-arm" : "right-arm";
+    arm.position.set(side * 0.34, 1.04, 0);
+    const sleeve = new THREE.Mesh(new THREE.CapsuleGeometry(0.085, 0.28, 4, 8), std(P.shirt));
+    sleeve.position.y = -0.18;
+    const hand = new THREE.Mesh(new THREE.SphereGeometry(0.085, 10, 10), skinMat);
+    hand.position.y = -0.38;
+    arm.add(sleeve, hand);
+    arm.rotation.z = -side * 0.15;
+    return arm;
+  };
+  const leftArm = makeArm(-1);
+  const rightArm = makeArm(1);
+
+  // Hai chân (khớp hông ở y = 0.48 để sải bước khi chạy)
+  const pantMat = std(0x3a3248);
+  const shoeMat = std(P.wood);
+  const makeLeg = (side: -1 | 1): THREE.Group => {
+    const leg = new THREE.Group();
+    leg.name = side < 0 ? "left-leg" : "right-leg";
+    leg.position.set(side * 0.14, 0.48, 0);
+    const thigh = new THREE.Mesh(new THREE.CapsuleGeometry(0.095, 0.26, 4, 8), pantMat);
+    thigh.position.y = -0.2;
+    const foot = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.1, 0.26), shoeMat);
+    foot.position.set(0, -0.43, 0.04);
+    leg.add(thigh, foot);
+    return leg;
+  };
+  const leftLeg = makeLeg(-1);
+  const rightLeg = makeLeg(1);
+
+  // Nón lá truyền thống rộng vành + vành tre + quai nón + chiếc đèn lồng nhỏ trên đỉnh nón
+  const hat = new THREE.Group();
+  hat.name = "conical-hat";
+  hat.position.y = 1.62;
+  const cone = new THREE.Mesh(new THREE.ConeGeometry(0.62, 0.42, 24), std(P.sand));
+  cone.position.y = 0.18;
+  const rim = new THREE.Mesh(new THREE.TorusGeometry(0.61, 0.03, 8, 28), std(P.wood));
+  rim.rotation.x = Math.PI / 2;
+  const midRing = new THREE.Mesh(new THREE.TorusGeometry(0.34, 0.018, 6, 24), std(P.wood));
+  midRing.rotation.x = Math.PI / 2;
+  midRing.position.y = 0.17;
+  const strap = new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.018, 6, 16, Math.PI), std(P.scarf));
+  strap.rotation.x = Math.PI;
+  strap.position.set(0, -0.04, 0.04);
+  const stick = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.28, 6), std(P.wood));
+  stick.position.y = 0.48;
+  const lamp = new THREE.Mesh(new THREE.SphereGeometry(0.12, 12, 12), basic(P.lanternCore));
+  lamp.position.y = 0.66;
+  const halo = new THREE.Mesh(new THREE.SphereGeometry(0.23, 12, 12), basic(P.lanternOn, { transparent: true, opacity: 0.35, depthWrite: false }));
+  halo.position.y = 0.66;
+  hat.add(cone, rim, midRing, strap, stick, lamp, halo);
+
+  g.add(torso, scarf, scarfTail, head, leftArm, rightArm, leftLeg, rightLeg, hat);
+  return { group: g, leftArm, rightArm, leftLeg, rightLeg, hat };
+}
+
+/** Cập nhật hoạt ảnh vung tay, bước chân và nghiêng nón cho Mây theo vận tốc và trạng thái nhảy/lướt. */
+export function animatePlayer(pm: PlayerModel, t: number, speedXZ: number, grounded: boolean, dashing: boolean) {
+  if (dashing) {
+    pm.leftArm.rotation.x = 0.9;
+    pm.rightArm.rotation.x = 0.9;
+    pm.leftLeg.rotation.x = -0.6;
+    pm.rightLeg.rotation.x = 0.5;
+    pm.hat.rotation.x = -0.18;
+    return;
+  }
+  if (!grounded) {
+    pm.leftArm.rotation.x = -0.5;
+    pm.rightArm.rotation.x = -0.5;
+    pm.leftLeg.rotation.x = 0.35;
+    pm.rightLeg.rotation.x = -0.25;
+    pm.hat.rotation.x = -0.08;
+    return;
+  }
+  const ratio = Math.min(1, speedXZ / 6);
+  const swing = Math.sin(t * 11) * 0.75 * ratio;
+  const idleBob = Math.sin(t * 2.5) * 0.04;
+  pm.leftLeg.rotation.x = swing;
+  pm.rightLeg.rotation.x = -swing;
+  pm.leftArm.rotation.x = -swing * 0.85 + idleBob;
+  pm.rightArm.rotation.x = swing * 0.85 - idleBob;
+  pm.hat.rotation.x = -0.06 * ratio;
+  pm.hat.rotation.z = Math.sin(t * 5.5) * 0.04 * ratio;
 }
 
 export interface LanternModel { group: THREE.Group; paper: THREE.Mesh; glow: THREE.Mesh; bar: THREE.Group; fill: THREE.Mesh; tears: THREE.Group }

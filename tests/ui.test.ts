@@ -84,14 +84,15 @@ describe("F6 cài đặt được lưu giữa các lần mở", () => {
   });
   it("lưu rồi tải lại thấy đúng giá trị", () => {
     const st = fakeStorage();
-    expect(saveSettings({ volume: 0.3, sensitivity: 1.8, colorblind: true }, st)).toBe(true);
-    expect(loadSettings(st)).toEqual({ volume: 0.3, sensitivity: 1.8, colorblind: true });
+    const custom = { ...DEFAULT_SETTINGS, volume: 0.3, sensitivity: 1.8, colorblind: true };
+    expect(saveSettings(custom, st)).toBe(true);
+    expect(loadSettings(st)).toEqual(custom);
   });
   it("dữ liệu hỏng hoặc ngoài khoảng được làm sạch; storage lỗi thì dùng mặc định", () => {
     const st = fakeStorage();
     st.m.set(SETTINGS_KEY, "không phải json");
     expect(loadSettings(st)).toEqual(DEFAULT_SETTINGS);
-    expect(sanitize({ volume: 5, sensitivity: -1, colorblind: "yes" })).toEqual({ volume: 1, sensitivity: 0.2, colorblind: false });
+    expect(sanitize({ volume: 5, sensitivity: -1, colorblind: "yes" })).toEqual({ ...DEFAULT_SETTINGS, volume: 1, sensitivity: 0.2, colorblind: false });
     expect(sanitize(null)).toEqual(DEFAULT_SETTINGS);
     const broken = { getItem: () => { throw new Error("x"); }, setItem: () => { throw new Error("x"); } };
     expect(loadSettings(broken)).toEqual(DEFAULT_SETTINGS);

@@ -1,0 +1,18 @@
+{
+  "entries": [
+    {
+      "name": "May_Top1",
+      "score": 900,
+      "nights_won": 3,
+      "achieved_at": "2026-11-20T17:05:00+07:00",
+      "seed": 1
+    },
+    {
+      "name": "May_Top2",
+      "score": 450,
+      "nights_won": 2,
+      "achieved_at": "2026-11-20T17:10:00+07:00",
+      "seed": 2
+    }
+  ]
+}

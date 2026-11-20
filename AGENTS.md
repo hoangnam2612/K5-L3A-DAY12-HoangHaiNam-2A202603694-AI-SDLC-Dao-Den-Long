@@ -1,10 +1,13 @@
 # AGENTS.md: Đảo Đèn Lồng
 
-Game 3D (TypeScript + Three.js + Vite) kèm chế độ headless theo Test Contract (hiện v1.1). Đề: `docs/LAB.md`; ticket Phase 2: `docs/spec/phase-2.md`; Phase 3 (Change Request "Đèn cạn dầu", contract v1.2): `docs/spec/phase-3.md`, quyết định thiết kế `docs/adr/0003-den-can-dau.md`, thay đổi phá vỡ tương thích `CHANGELOG.md`.
+Game 3D (TypeScript + Three.js + Vite) kèm chế độ headless theo Test Contract (hiện v1.3). Đề: `docs/LAB.md`; ticket Phase 2: `docs/spec/phase-2.md`; Phase 3 (Change Request "Đèn cạn dầu", contract v1.2): `docs/spec/phase-3.md`, quyết định thiết kế `docs/adr/0003-den-can-dau.md`; Phase 4 ("Bình minh: Bản v1.0.0", contract v1.3): `docs/spec/phase-4.md`, retro `docs/notes/retro.md`, thay đổi `CHANGELOG.md`.
 
 ## Lệnh
-- `npm install`, `npm run dev`, `npm test` (Vitest), `npm run typecheck`, `npm run bench`
+- `npm install`, `npm run dev`, `npm test` (Vitest), `npm run typecheck`, `npm run build`
 - `npm run headless -- --seed 1 --night 1 --ticks 600 --out out/run.jsonl` (`--night` 1, 2, 3)
+- `npx tsx scripts/bench.ts --seed 42 --duration 30 --out bench.json`
+- `npx tsx scripts/soak.ts --seed 7 --nights 10 --out soak.json`
+- `npx tsx scripts/run.ts --export-leaderboard out.json`
 
 ## Quy tắc kiến trúc
 - **Luật chơi chỉ nằm ở `src/sim/`**, thuần logic, không import `three`/DOM, không `Math.random`/thời gian thực. Ngẫu nhiên chỉ qua `makeRng(seed)`; mỗi hệ có dòng ngẫu nhiên riêng để thêm tính năng không đổi dòng khác.

@@ -1,5 +1,6 @@
 // Logic thuần của HUD (không đụng DOM) để dễ kiểm thử.
 export const LOW_TIME_S = 30;
+export const FINAL_COUNTDOWN_S = 10;
 
 /** Đồng hồ mm:ss (làm tròn lên: 299.98 s → 05:00). */
 export function formatTime(seconds: number): string {
@@ -16,12 +17,12 @@ export function moteCells(carried: number, capacity = 10): boolean[] {
   return Array.from({ length: capacity }, (_, i) => i < carried);
 }
 
-/** Nhắc nạp đèn: "E — Nạp ánh sáng (x/10)" với x là số đã nạp của đèn gần nhất. */
-export function lanternPrompt(deposited: number, cost = 10): string {
-  return `E — Nạp ánh sáng (${deposited}/${cost})`;
+/** Nhắc nạp đèn: "<phím> — Nạp ánh sáng (x/10)" với x là số đã nạp của đèn gần nhất. */
+export function lanternPrompt(deposited: number, cost = 10, keyLabel = "E"): string {
+  return `${keyLabel} — Nạp ánh sáng (${deposited}/${cost})`;
 }
 
-/** Mũi tên chỉ tới đèn: chỉ hiện khi đèn nằm ngoài màn hình. NDC: x,y ∈ [-1,1], z>1 nghĩa là phía sau camera. */
+/** Mũi tên chỉ tới mục tiêu ngoài màn hình (đèn hoặc Bóng Mực vừa xuất hiện). NDC: x,y ∈ [-1,1], z>1 nghĩa là phía sau camera. */
 export function arrowFor(ndcX: number, ndcY: number, ndcZ: number): { visible: boolean; angleDeg: number } {
   const behind = ndcZ > 1;
   const onScreen = !behind && Math.abs(ndcX) <= 1 && Math.abs(ndcY) <= 1;
@@ -32,6 +33,15 @@ export function arrowFor(ndcX: number, ndcY: number, ndcZ: number): { visible: b
   return { visible: true, angleDeg: (Math.atan2(x, y) * 180) / Math.PI };
 }
 
+/** Góc mũi tên ở mép màn hình cho thực thể bất kỳ (kể cả khi đang trong màn hình nếu forceEdge = true). */
+export function edgeArrowFor(ndcX: number, ndcY: number, ndcZ: number, forceEdge = false): { visible: boolean; angleDeg: number } {
+  if (!forceEdge) return arrowFor(ndcX, ndcY, ndcZ);
+  const behind = ndcZ > 1;
+  const x = behind ? -ndcX : ndcX;
+  const y = behind ? -ndcY : ndcY;
+  return { visible: true, angleDeg: (Math.atan2(x, y) * 180) / Math.PI };
+}
+
 /** Tỉ lệ còn lại của hồi chiêu (1 = vừa dùng, 0 = sẵn sàng). */
 export const cooldownRatio = (leftTicks: number, totalTicks: number): number => (totalTicks > 0 ? Math.min(1, Math.max(0, leftTicks / totalTicks)) : 0);
 
@@ -39,8 +49,37 @@ export const cooldownRatio = (leftTicks: number, totalTicks: number): number => 
 export const needLit = (total: number, ratio = 0.6): number => Math.ceil(ratio * total - 1e-9);
 
 /** Nhắc châm dầu cho đèn đang sáng. */
-export const refuelPrompt = (fuel: number, max = 100): string => `E — Châm dầu (${Math.floor(fuel)}/${max})`;
+export const refuelPrompt = (fuel: number, max = 100, keyLabel = "E"): string => `${keyLabel} — Châm dầu (${Math.floor(fuel)}/${max})`;
 
 /** Đèn và thanh dầu nhấp nháy chậm 1 Hz khi fuel < 30. */
 export const isLowFuel = (fuel: number, threshold = 30): boolean => fuel < threshold;
 export const blinkOn = (tSeconds: number): boolean => tSeconds % 1 < 0.5;
+
+export interface SubtitleInput {
+  shadeSpawnLeftS: number; // thời gian còn lại hiển thị thông báo bóng mới xuất hiện (>0 là đang hiện)
+  shadeId?: string;
+  windWarning: boolean;
+  windActive: boolean;
+  timeLeftS: number;
+  lowFuelIds: string[]; // các đèn đang sáng nhưng có fuel < 30
+}
+
+/** Tạo danh sách phụ đề / chỉ báo hình ảnh cho người khiếm thính hoặc dễ tiếp cận (Ticket-04 mục 4). */
+export function buildSubtitles(inp: SubtitleInput): string[] {
+  const lines: string[] = [];
+  if (inp.shadeSpawnLeftS > 0) {
+    lines.push(`⚠ Bóng Mực ${inp.shadeId ?? ""} vừa xuất hiện!`);
+  }
+  if (inp.windWarning) {
+    lines.push("🌬 Gió mạnh sắp thổi (2 giây)!");
+  } else if (inp.windActive) {
+    lines.push("🌬 Gió mạnh đang thổi!");
+  }
+  if (inp.timeLeftS > 0 && inp.timeLeftS <= FINAL_COUNTDOWN_S) {
+    lines.push(`⏱ Đếm ngược bình minh: còn ${Math.ceil(inp.timeLeftS)} giây!`);
+  }
+  if (inp.lowFuelIds.length > 0) {
+    lines.push(`🏮 Đèn sắp cạn dầu (<30): ${inp.lowFuelIds.join(", ")}`);
+  }
+  return lines;
+}

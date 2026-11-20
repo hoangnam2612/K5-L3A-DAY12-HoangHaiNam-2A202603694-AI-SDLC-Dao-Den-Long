@@ -38,7 +38,7 @@ export interface Tornado {
   end: [number, number];
   pos: [number, number];
 }
-export interface GameOptions { night?: 1 | 2 | 3; tornado?: boolean }
+export interface GameOptions { night?: 1 | 2 | 3; tornado?: boolean; bench?: boolean }
 
 const DT = 1 / W.tick_rate;
 const r3 = (n: number) => Math.round(n * 1000) / 1000 + 0; // +0 tránh -0
@@ -106,9 +106,11 @@ export class Game {
   private randomDrifters: boolean;
   private windEnabled: boolean;
   private paused = false;
+  readonly benchMode: boolean;
 
   constructor(seed: number, scenario: Scenario = {}, frames: InputFrame[] = [], options: GameOptions = {}) {
     this.night = options.night ?? 1;
+    this.benchMode = options.bench === true;
     this.def = NIGHTS[this.night];
     this.terrain = makeTerrain(this.night);
     this.rngMotes = makeRng(seed);
@@ -173,10 +175,64 @@ export class Game {
       });
     }
 
-    if (options.tornado) {
+    if (options.tornado && !this.benchMode) {
       this.tornado = { phase: "idle", ticks_left: this.randomTornadoWait(), total_ticks: 0, start: [0, 0], end: [0, 0], pos: [0, 0] };
     }
+    if (this.benchMode) this.setupBenchmarkScene(seed);
     this.emit("night_start", { night: this.night }, 0);
+  }
+
+  /** Cảnh benchmark chuẩn (Ticket-04 mục 1): 200 Bóng Mực wander rải đều trên đảo, 100 đom đóm, L1-L3 sáng với fuel 100, Mây tại (0,0,0). */
+  private setupBenchmarkScene(seed: number) {
+    const rng = makeRng(seed);
+    this.player.pos = [0, 0, 0];
+    this.player.vel = [0, 0, 0];
+    this.settle(this.player.pos);
+    this.lanterns.forEach((l, i) => {
+      if (i < 3) {
+        l.lit = true;
+        l.ever_lit = true;
+        l.deposited = T.lantern_cost;
+        l.fuel = FUEL_MAX;
+      } else {
+        l.lit = false;
+        l.ever_lit = false;
+        l.deposited = 0;
+        l.fuel = 0;
+      }
+    });
+    this.motes = [];
+    this.moteSeq = 0;
+    const R = this.def.areas[0]?.r ?? 40;
+    for (let i = 0; i < 100; i++) {
+      const a = rng() * Math.PI * 2;
+      const r = Math.sqrt(rng()) * (R - 2);
+      const x = Math.cos(a) * r, z = Math.sin(a) * r;
+      this.addMote([x, this.terrain.topAt(x, z) ?? 0, z], "random");
+    }
+    this.shades = [];
+    this.shadeSeq = 0;
+    for (let i = 0; i < 200; i++) {
+      const a = rng() * Math.PI * 2;
+      const r = 4 + Math.sqrt(rng()) * (R - 6);
+      let x = Math.cos(a) * r, z = Math.sin(a) * r;
+      // Đặt ngoài vùng an toàn của L1..L3 để không bị dồn cục ngay tick đầu
+      for (const l of this.lanterns.slice(0, 3)) {
+        const dl = Math.hypot(x - l.pos[0], z - l.pos[2]);
+        if (dl < T.safe_radius + 0.2) {
+          const ux = dl > 0 ? (x - l.pos[0]) / dl : 1;
+          const uz = dl > 0 ? (z - l.pos[2]) / dl : 0;
+          x = l.pos[0] + ux * (T.safe_radius + 0.5);
+          z = l.pos[2] + uz * (T.safe_radius + 0.5);
+        }
+      }
+      const g = this.terrain.topAt(x, z) ?? 0;
+      this.addShade([x, g + W.shade_y, z], undefined, "wander", 0);
+      const ha = rng() * Math.PI * 2;
+      const sh = this.shades[this.shades.length - 1]!;
+      sh.heading = [Math.cos(ha), Math.sin(ha)];
+      sh.turn = Math.floor(rng() * W.shade_wander_turn);
+    }
   }
 
   // ---------- tiện ích ----------
@@ -245,6 +301,16 @@ export class Game {
 
     const press = (key: "jump" | "interact" | "pulse" | "dash") => this.input[key] && !prev[key];
     this.simTick++;
+    if (this.benchMode) {
+      // Cảnh bench tắt: sinh thêm thực thể, sát thương, nhặt đom đóm, hao dầu, điều kiện kết thúc Đêm và không có input người chơi.
+      // Bóng Mực vẫn di chuyển theo luật wander bình thường.
+      for (const s of this.shades) {
+        s.state = "wander";
+        this.wander(s);
+        this.clampOutOfZones(s);
+      }
+      return;
+    }
     this.decrementCounters();
     this.updateWind();
     this.movePlayer(press);

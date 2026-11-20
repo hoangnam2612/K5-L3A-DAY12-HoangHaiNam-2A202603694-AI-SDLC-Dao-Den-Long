@@ -1,9 +1,11 @@
 {
-  "contract_version": "1.2",
+  "contract_version": "1.3",
   "team": "2A202603694-hoang-hai-nam",
   "build_cmd": "npm install",
-  "run_cmd": "npm run dev",
+  "run_cmd": "npx tsx scripts/run.ts",
   "headless_cmd": "npx tsx src/headless/cli.ts",
+  "bench_cmd": "npx tsx scripts/bench.ts",
+  "soak_cmd": "npx tsx scripts/soak.ts",
   "tuning": {
     "player_speed": 6.0,
     "carry_capacity": 10,
