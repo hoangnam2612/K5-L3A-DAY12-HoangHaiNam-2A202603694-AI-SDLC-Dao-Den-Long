@@ -1,0 +1,4 @@
+{"description":"F3: Đêm 3: gió mạnh báo trước 2 s rồi thổi 5 s (tick 1800-2099)","night":3,"seed":1,"ticks":2100,"snapshot_every":1,
+ "scenario":{"random_motes":false,"random_shades":false,"random_drifters":false},
+ "inputs":{"frames":[]},
+ "expect":{"at":{"1680":{"wind.warning":true},"1800":{"wind.active":true,"wind.warning":false},"2099":{"wind.active":true},"2100":{"wind.active":false}}}}

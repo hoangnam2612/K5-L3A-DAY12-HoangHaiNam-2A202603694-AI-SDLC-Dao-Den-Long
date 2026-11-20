@@ -1,0 +1,4 @@
+{"description":"F2: Bùa Gió: lướt không hồi chiêu, nhấn khi đang lướt bị bỏ qua","night":2,"seed":1,"ticks":30,
+ "scenario":{"random_motes":false,"random_shades":false,"random_drifters":false,"wind_enabled":false,"player":{"charm_ticks":600}},
+ "inputs":{"frames":[{"tick":0,"dash":true},{"tick":3,"dash":false},{"tick":5,"dash":true},{"tick":6,"dash":false},{"tick":13,"dash":true}]},
+ "expect":{"events":[{"name":"dash","tick":1},{"name":"dash","tick":14}]}}

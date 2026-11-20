@@ -1,0 +1,4 @@
+{"description":"F2: nhặt Bùa Gió hiệu lực 600 tick, bùa biến mất 2700 tick","night":2,"seed":1,"ticks":5,
+ "scenario":{"random_motes":false,"random_shades":false,"random_drifters":false,"wind_enabled":false,"player":{"pos":[35,0,0]}},
+ "inputs":{"frames":[]},
+ "expect":{"events":[{"name":"charm_picked","tick":1,"data":{"charm_id":"C1","charm_ticks":600}}],"last":{"player.charm_s":9.933,"charms[0].available":false}}}

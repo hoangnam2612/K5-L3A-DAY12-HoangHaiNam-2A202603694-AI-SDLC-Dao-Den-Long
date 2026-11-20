@@ -1,0 +1,4 @@
+{"description":"F1: Gió Lạc idle→chase khi mang ≥5 và ≤15 m, cướp min(3, mang) rồi flee, không mất Ngọn Lửa","night":2,"seed":1,"ticks":100,
+ "scenario":{"random_motes":false,"random_shades":false,"random_drifters":false,"wind_enabled":false,"player":{"carried":5},"drifters":[{"id":"D1","pos":[10,1.5,0]}]},
+ "inputs":{"frames":[]},
+ "expect":{"events":[{"name":"drifter_steal","data":{"drifter_id":"D1","amount":3,"carried":2}}],"last":{"player.flames":3,"player.carried":2,"drifters[0].state":"flee","drifters[0].stolen":3}}}

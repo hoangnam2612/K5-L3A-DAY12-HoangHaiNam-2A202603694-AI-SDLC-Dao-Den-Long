@@ -15,10 +15,13 @@ Công cụ: Claude Code (app desktop), mô hình Claude Sonnet 5.5. Harness: `AG
 | 8 | Hoàn thiện giấy tờ nộp bài | LICENSE, CREDITS, README, tag |
 | 9 | Thêm chức năng lướt (phím F) qua Bóng Mực không mất lửa | Lướt trong lõi sim + 8 test mới, vệt sáng và HUD hồi chiêu |
 | 10 | Thêm lốc xoáy càn quét: thời gian ngẫu nhiên, dải đỏ cảnh báo, giết Bóng Mực | Lốc xoáy trong sim (tắt trong headless), 14 test, dải đỏ + banner + viền đỏ + mô hình phễu |
+| 11 | Phase 2: đọc Ticket-02 (dán từ lab board), phân tích khác biệt, hỏi chỗ mơ hồ, lập kế hoạch | Kế hoạch 7 bước B0-B6; giả định P1-P16; spec có AC ở docs/spec/phase-2.md |
+| 12 | Làm toàn bộ Ticket-02 | Viết lại lõi sim (3 Đêm, địa hình, Gió Lạc, Bùa, gió, pause, rơi đảo), contract v1.1, 168 test, GUI (menu, HUD, âm thanh WebAudio, 3 bản đồ) |
 
 ## Kiểm chứng kết quả AI
 - Không tin "đã chạy": mọi thay đổi lõi chạy `npm test` và `npm run typecheck`; bằng chứng lưu ở `docs/proof/`.
 - Tôi tự chơi thử cả ván thắng và ván thua trong trình duyệt.
+- Phase 2: test viết theo từng AC của spec, rồi thử làm hỏng code có chủ đích (5 test đỏ, đã hoàn nguyên); FPS và âm thanh không kiểm được trong môi trường AI nên ghi rõ là chưa đo.
 - Test được thử độ nhạy: đổi `<=` thành `>=` ở biên Pulse và lệch khoảng cách vùng an toàn, 2 test đỏ, đã hoàn nguyên.
 
 ## Chi phí

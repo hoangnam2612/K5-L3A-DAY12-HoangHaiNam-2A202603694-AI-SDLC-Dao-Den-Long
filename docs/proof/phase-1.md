@@ -25,3 +25,5 @@ Chưa đạt/chưa kiểm: chơi tay một ván hoàn chỉnh trong trình duy�
 
 ## Bổ sung: lốc xoáy (sáng tạo)
 `tests/tornado.test.ts` (14 test): tắt mặc định và không có sự kiện lốc xoáy trong headless dù chạy 6000 tick; bật lốc xoáy không đổi bố cục ngẫu nhiên chính; thời gian chờ nằm trong 12 đến 25 s, khác nhau giữa các seed và các lần quét; cảnh báo đúng 3 s trước khi quét; Bóng Mực chết khi bị quét; Mây mất đúng 1 lửa, đứng ngoài dải hoặc đang lướt thì không sao. Đã kiểm tra tay trong trình duyệt: dải đỏ, banner, viền đỏ cảnh báo và phễu càn quét hiển thị đúng.
+
+> Ghi chú: tài liệu này mô tả bằng chứng của tag `phase-1`. Từ Phase 2 các số liệu và luật đã đổi theo Ticket-02, xem `docs/proof/phase-2.md` (file `sample-run.jsonl` cũ được thay bằng `sample-run-night{1,2,3}.jsonl`; bản gốc vẫn xem được ở tag `phase-1`).

@@ -1,0 +1,4 @@
+{"description":"M3: bục (0,3,13) phóng lên tầng 2 (Y=6)","night":3,"seed":1,"ticks":120,
+ "scenario":{"random_motes":false,"random_shades":false,"random_drifters":false,"wind_enabled":false,"player":{"pos":[0,3,13]}},
+ "inputs":{"frames":[]},
+ "expect":{"last":{"player.grounded":true,"player.pos[1]":6,"player.flames":3}}}

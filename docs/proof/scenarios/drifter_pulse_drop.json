@@ -1,0 +1,4 @@
+{"description":"F1: Tỏa Sáng trúng Gió Lạc đang flee có đồ → thả đồ thành đom đóm rơi","night":2,"seed":1,"ticks":10,
+ "scenario":{"random_motes":false,"random_shades":false,"random_drifters":false,"wind_enabled":false,"player":{"carried":5},"drifters":[{"id":"D1","pos":[3,1.5,0],"state":"flee","stolen":3}]},
+ "inputs":{"frames":[{"tick":0,"pulse":true},{"tick":1,"pulse":false}]},
+ "expect":{"events":[{"name":"pulse","tick":1},{"name":"drifter_drop","data":{"drifter_id":"D1","amount":3}}],"last":{"drifters[0].stolen":0,"motes_active":3}}}

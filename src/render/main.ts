@@ -1,260 +1,378 @@
 /// <reference types="vite/client" />
 import * as THREE from "three";
 import { Game } from "../sim/game";
-import { WORLD as W } from "../sim/tuning";
+import { TUNING as T, WORLD as W } from "../sim/tuning";
+import { AudioEngine, countdownBeep, soundsForEvents } from "./audio";
+import { Flow, type Night } from "./flow";
+import { Hud } from "./hud";
+import { InputController } from "./input";
+import { makeCharm, makeDrifter, makePlayer, makeShade, type DrifterModel, type ShadeModel } from "./models";
+import { ambientIntensity, PALETTE as P } from "./palette";
+import { buildNightScene, type NightScene } from "./scenes";
+import { Screens } from "./screens";
+import { loadSettings, saveSettings, type Settings } from "./settings";
 import { makeTornado } from "./tornadoModel";
-import { decoRng, makeLantern, makeMushroom, makePlayer, makeRock, makeShade, makeStars, makeTree, type ShadeModel } from "./models";
 
 // Render chỉ ĐỌC trạng thái từ lõi sim; mọi luật chơi nằm ở src/sim.
-// Lốc xoáy chỉ bật trong game có giao diện; headless luôn tắt để giữ đúng Test Contract.
-const newGame = () => new Game((Math.random() * 2 ** 31) | 0, {}, [], { tornado: true });
-let game = newGame();
-// Chỉ ở chế độ dev (vite dev): cho phép kiểm tra thủ công, không có trong bản build.
-if (import.meta.env.DEV) (window as any).__ddl = { get game() { return game; } };
+const showFps = import.meta.env.DEV || new URLSearchParams(location.search).has("fps");
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.setSize(innerWidth, innerHeight);
-document.body.appendChild(renderer.domElement);
+document.getElementById("app")!.appendChild(renderer.domElement);
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x1d1a45);
-scene.fog = new THREE.Fog(0x1d1a45, 45, 130);
-const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 250);
-scene.add(new THREE.AmbientLight(0x9a93d0, 1.4));
-scene.add(new THREE.HemisphereLight(0xb8c4ff, 0x4a5a3a, 0.9));
-const moon = new THREE.DirectionalLight(0xc8d2ff, 1.3);
+scene.background = new THREE.Color(P.sky);
+scene.fog = new THREE.Fog(P.fog, 50, 190);
+const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 400);
+const ambient = new THREE.AmbientLight(0x9a93d0, 0.15);
+scene.add(ambient, new THREE.HemisphereLight(0xb8c4ff, P.grass, 1.2));
+const moon = new THREE.DirectionalLight(0xc8d2ff, 1.5);
 moon.position.set(-20, 40, -10);
 scene.add(moon);
-const playerLight = new THREE.PointLight(0xffc766, 70, 30);
+const playerLight = new THREE.PointLight(P.lanternOn, 70, 30);
 scene.add(playerLight);
-
-const ground = new THREE.Mesh(
-  new THREE.CylinderGeometry(W.island_radius, W.island_radius, 1, 64),
-  new THREE.MeshStandardMaterial({ color: 0x5b7f58 }),
-);
-ground.position.y = -0.5;
-scene.add(ground);
-// Viền mép đảo để nhìn rõ ranh giới.
-const edge = new THREE.Mesh(
-  new THREE.TorusGeometry(W.island_radius, 0.35, 8, 96),
-  new THREE.MeshBasicMaterial({ color: 0xffb347 }),
-);
-edge.rotation.x = Math.PI / 2;
-scene.add(edge);
-
-const playerModel = makePlayer();
-scene.add(playerModel);
-let facing = 0;
-const lanternLights: THREE.PointLight[] = [];
-const lanternModels = game.lanterns.map((l) => {
-  const m = makeLantern();
-  m.group.position.set(l.pos[0], 0, l.pos[2]);
-  const light = new THREE.PointLight(0xffa13d, 0, 28);
-  light.position.set(l.pos[0], 4, l.pos[2]);
-  scene.add(light, m.group);
-  lanternLights.push(light);
-  return m;
-});
-// Đom đóm giữ nguyên: chấm sáng ổn định, không nhấp nháy.
-const moteGeo = new THREE.SphereGeometry(0.25, 8, 8);
-const moteMat = new THREE.MeshBasicMaterial({ color: 0xfff3a0 });
-const dyn = new THREE.Group();
-scene.add(dyn);
-// Vệt sáng mờ để thấy Mây đang lướt (chỉ là hiệu ứng hiển thị).
-const trailGeo = new THREE.SphereGeometry(0.45, 10, 10);
-const trail: { m: THREE.Mesh; life: number }[] = [];
-let lastFrameMs = performance.now();
-const shadeModels = new Map<string, ShadeModel>();
-// Dải đỏ cảnh báo đường quét của lốc xoáy.
-const warnStrip = new THREE.Group();
-const warnMat = new THREE.MeshBasicMaterial({ color: 0xff2230, transparent: true, opacity: 0.4, depthWrite: false });
-const warnPlane = new THREE.Mesh(new THREE.PlaneGeometry(W.tornado_half_len * 2, W.tornado_band_width), warnMat);
-warnPlane.rotation.x = -Math.PI / 2;
-warnPlane.position.y = 0.06;
-const edgeMat = new THREE.MeshBasicMaterial({ color: 0xffd0d0, transparent: true, opacity: 0.9, depthWrite: false });
-for (const sz of [-1, 1]) {
-  const e = new THREE.Mesh(new THREE.PlaneGeometry(W.tornado_half_len * 2, 0.35), edgeMat);
-  e.rotation.x = -Math.PI / 2;
-  e.position.set(0, 0.07, (sz * W.tornado_band_width) / 2);
-  warnStrip.add(e);
-}
-warnStrip.add(warnPlane);
-warnStrip.visible = false;
-scene.add(warnStrip);
-const tornadoModel = makeTornado();
-tornadoModel.group.visible = false;
-scene.add(tornadoModel.group);
-const warnBanner = document.getElementById("warn")!;
-const warnFrame = document.getElementById("warnframe")!;
-const shadeLayer = new THREE.Group();
-scene.add(shadeLayer);
-
-// Cảnh trang trí cố định (chỉ để nhìn, không va chạm).
-scene.add(makeStars(350, decoRng(7)));
-{
-  const r = decoRng(42);
-  const away = (x: number, z: number) =>
-    Math.hypot(x, z) > 7 && game.lanterns.every((l) => Math.hypot(x - l.pos[0], z - l.pos[2]) > 6);
-  for (let i = 0; i < 26; i++) {
-    const a = r() * Math.PI * 2, rad = W.island_radius - 1 - r() * 3.5;
-    const t = makeTree(0.8 + r() * 0.7);
-    t.position.set(Math.cos(a) * rad, 0, Math.sin(a) * rad);
-    scene.add(t);
-  }
-  for (let i = 0; i < 28; i++) {
-    const a = r() * Math.PI * 2, rad = 6 + r() * (W.island_radius - 12);
-    const x = Math.cos(a) * rad, z = Math.sin(a) * rad;
-    if (!away(x, z)) continue;
-    const o = r() < 0.5 ? makeRock(0.25 + r() * 0.35) : makeMushroom(0.9 + r() * 0.8);
-    o.position.x = x; o.position.z = z; o.rotation.y = r() * 6.28;
-    scene.add(o);
-  }
-}
-
-const keys = new Set<string>();
-addEventListener("keydown", (e) => keys.add(e.code));
-addEventListener("keyup", (e) => keys.delete(e.code));
 addEventListener("resize", () => {
   renderer.setSize(innerWidth, innerHeight);
   camera.aspect = innerWidth / innerHeight;
   camera.updateProjectionMatrix();
 });
 
-const hud = document.getElementById("hud")!;
-const overlay = document.getElementById("overlay")!;
-let running = false;
-let endShown = false;
+// ---------- trạng thái ứng dụng ----------
+let settings: Settings = loadSettings();
+const flow = new Flow();
+const audio = new AudioEngine();
+audio.setVolume(settings.volume);
+const input = new InputController(renderer.domElement, () => togglePause());
+input.sensitivity = settings.sensitivity;
+input.onLockLost = () => { if (flow.screen === "playing") togglePause(); };
+const hud = new Hud(document.getElementById("hudhost")!);
+const screensEl = document.getElementById("screens")!;
+const warnBanner = document.getElementById("warn")!;
+const warnFrame = document.getElementById("warnframe")!;
+const windNote = document.getElementById("windnote")!;
+
+let game: Game | null = null;
+let ns: NightScene | null = null;
+let acc = 0;
+let endAt = 0;
+let smoothY = 0;
+let prevLeft = 0;
+let prevGrounded = true;
+let prevWarning = false;
 const newSeed = () => (Math.random() * 2 ** 31) | 0;
 
-function show(html: string) {
-  overlay.innerHTML = `<div class="card">${html}</div>`;
-  overlay.hidden = false;
-  running = false;
-}
-function start() {
-  game = newGame();
-  endShown = false;
-  keys.clear();
-  overlay.hidden = true;
-  running = true;
-}
-const guide = `
-  <h2>Cách chơi</h2>
-  <ul>
-    <li>Nhặt <b>đom đóm</b> bằng cách đi tới gần chúng (mang tối đa 8).</li>
-    <li>Đứng gần một <b>Đèn Lồng Lớn</b> rồi nhấn <kbd>E</kbd> để nạp ánh sáng. Mỗi đèn cần 5 đom đóm.</li>
-    <li>Thắp sáng cả <b>5 đèn</b> trước khi hết đêm (300 giây) để thắng.</li>
-    <li><b>Bóng Mực</b> đuổi theo bạn. Chạm vào sẽ mất 1 ngọn lửa và đánh rơi một nửa số đom đóm đang mang. Hết 3 ngọn lửa là thua.</li>
-    <li>Bóng Mực sợ đèn lồng: chúng không vào được vùng quanh đèn, đó là chỗ an toàn.</li>
-    <li>Nhấn <kbd>Q</kbd> để tung <b>xung sáng</b>: tốn 2 đom đóm, đẩy lùi và làm choáng bóng ở gần (hồi 2 giây).</li>
-    <li>Nhấn <kbd>F</kbd> để <b>lướt</b> nhanh theo hướng đang đi: lướt xuyên qua Bóng Mực mà <b>không mất ngọn lửa</b> (hồi 1,5 giây).</li>
-    <li><b>Lốc xoáy</b> thỉnh thoảng càn quét qua đảo vào lúc bất ngờ. Khi thấy <b>dải đỏ</b> và viền đỏ nhấp nháy, hãy chạy ra khỏi dải trong vài giây. Lốc xoáy quét trúng Bóng Mực thì chúng chết, quét trúng Mây thì mất 1 ngọn lửa (lướt <kbd>F</kbd> để xuyên qua an toàn).</li>
-  </ul>
-  <h2>Điều khiển</h2>
-  <p><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> di chuyển · <kbd>Space</kbd> nhảy · <kbd>E</kbd> nạp đèn · <kbd>Q</kbd> xung sáng · <kbd>F</kbd> lướt · <kbd>R</kbd> chơi lại</p>
-  <h2>Điểm</h2>
-  <p>Nhặt đom đóm +10 · thắp đèn +100 · làm choáng bóng +20 · khi thắng: +1 mỗi giây còn lại, +50 mỗi ngọn lửa còn lại.</p>`;
-function showIntro() {
-  show(`<h1>Đảo Đèn Lồng</h1>
-    <p>Đêm xuống trên đảo Bến. Mây đội chiếc đèn nhỏ trên mũ, đi gom đom đóm để thắp lại những Đèn Lồng Lớn đã tắt.</p>
-    <button id="start-btn">Bắt đầu (Enter)</button>
-    ${guide}`);
-}
-function showEnd() {
-  const won = game.state === "won";
-  const lit = game.lanterns.filter((l) => l.lit).length;
-  show(`<h1>${won ? "Bình minh! Mây đã thắp sáng cả đảo" : "Đêm tàn, ánh đèn đã tắt"}</h1>
-    <p class="big">Điểm: <b>${game.score}</b></p>
-    <p>Đèn đã thắp: ${lit}/${game.lanterns.length} · Ngọn lửa còn lại: ${game.player.flames} · Thời gian còn: ${Math.max(0, game.timeLeft).toFixed(0)} giây</p>
-    <button id="start-btn">Chơi lại (Enter)</button>`);
-}
-overlay.addEventListener("click", (e) => { if ((e.target as HTMLElement).id === "start-btn") start(); });
-addEventListener("keydown", (e) => { if (e.code === "Enter" && !running) start(); });
-showIntro();
+// ---------- thực thể động ----------
+const playerModel = makePlayer();
+scene.add(playerModel);
+const shadeLayer = new THREE.Group();
+const driftLayer = new THREE.Group();
+const charmLayer = new THREE.Group();
+scene.add(shadeLayer, driftLayer, charmLayer);
+const shadeModels = new Map<string, ShadeModel>();
+const driftModels = new Map<string, DrifterModel>();
+const charmModels = new Map<string, THREE.Group>();
 
-let acc = 0;
-let last = performance.now();
+const moteMesh = new THREE.InstancedMesh(new THREE.SphereGeometry(0.25, 10, 10), new THREE.MeshBasicMaterial({ color: 0xffffff }), 96);
+const haloMesh = new THREE.InstancedMesh(new THREE.SphereGeometry(0.55, 10, 10), new THREE.MeshBasicMaterial({ color: P.moteHalo, transparent: true, opacity: 0.22, depthWrite: false }), 96);
+moteMesh.frustumCulled = false;
+haloMesh.frustumCulled = false;
+scene.add(moteMesh, haloMesh);
+const tmpM = new THREE.Matrix4();
+const tmpC = new THREE.Color();
 
-function frame(now: number) {
-  acc = running ? acc + Math.min(0.1, (now - last) / 1000) : 0;
-  last = now;
-  // Camera nhìn về +Z nên phải (D) là -X.
-  const mx = (keys.has("KeyA") ? 1 : 0) - (keys.has("KeyD") ? 1 : 0);
-  const mz = (keys.has("KeyW") ? 1 : 0) - (keys.has("KeyS") ? 1 : 0);
-  const input = { move: [mx, mz] as [number, number], jump: keys.has("Space"), interact: keys.has("KeyE"), pulse: keys.has("KeyQ"), dash: keys.has("KeyF") };
-  while (acc >= 1 / W.tick_rate) {
-    // Nhập trực tiếp vào lõi qua cùng cơ chế frame như headless.
-    (game as any).frames = [{ tick: game.steps, ...input }];
-    (game as any).frameIdx = 0;
-    game.step();
-    game.events.length = 0;
-    acc -= 1 / W.tick_rate;
-  }
-  if (running && keys.has("KeyR")) start(); // vị trí đèn cố định nên không cần dựng lại mesh
-  if (running && game.state !== "playing" && !endShown) { endShown = true; showEnd(); }
+// Dải đỏ cảnh báo và phễu lốc xoáy (sáng tạo, chỉ game có giao diện)
+const warnStrip = new THREE.Group();
+const warnMat = new THREE.MeshBasicMaterial({ color: 0xff2230, transparent: true, opacity: 0.4, depthWrite: false });
+const warnPlane = new THREE.Mesh(new THREE.PlaneGeometry(1, W.tornado_band_width), warnMat);
+warnPlane.rotation.x = -Math.PI / 2;
+warnPlane.position.y = 0.09;
+const edgeMat = new THREE.MeshBasicMaterial({ color: 0xffd0d0, transparent: true, opacity: 0.9, depthWrite: false });
+const warnEdges = [-1, 1].map((sz) => {
+  const e = new THREE.Mesh(new THREE.PlaneGeometry(1, 0.35), edgeMat);
+  e.rotation.x = -Math.PI / 2;
+  e.position.set(0, 0.1, (sz * W.tornado_band_width) / 2);
+  warnStrip.add(e);
+  return e;
+});
+warnStrip.add(warnPlane);
+warnStrip.visible = false;
+scene.add(warnStrip);
+const tornadoModel = makeTornado();
+tornadoModel.group.visible = false;
+scene.add(tornadoModel.group);
 
-  const p = game.player.pos;
-  playerModel.position.set(p[0], p[1], p[2]);
-  if (running && (mx !== 0 || mz !== 0)) facing = Math.atan2(mx, mz);
-  playerModel.rotation.y = facing;
-  playerLight.position.set(p[0], 3, p[2]);
-  const dt = Math.min(0.1, (now - lastFrameMs) / 1000);
-  lastFrameMs = now;
-  if (running && game.player.dash_ticks > 0) {
-    const m = new THREE.Mesh(trailGeo, new THREE.MeshBasicMaterial({ color: 0xffd36e, transparent: true, opacity: 0.5, depthWrite: false }));
-    m.position.set(p[0], p[1] + 1, p[2]);
-    scene.add(m);
-    trail.push({ m, life: 0.35 });
-  }
-  for (let i = trail.length - 1; i >= 0; i--) {
-    const t = trail[i]!;
-    t.life -= dt;
-    if (t.life <= 0) { scene.remove(t.m); (t.m.material as THREE.Material).dispose(); trail.splice(i, 1); continue; }
-    (t.m.material as THREE.MeshBasicMaterial).opacity = (t.life / 0.35) * 0.5;
-    t.m.scale.setScalar(t.life / 0.35 + 0.2);
-  }
-  camera.position.set(p[0], p[1] + 15, p[2] - 15);
-  camera.lookAt(p[0], p[1], p[2]);
-  game.lanterns.forEach((l, i) => {
-    const lm = lanternModels[i]!;
-    const mat = lm.paper.material as THREE.MeshStandardMaterial;
-    const fill = l.lit ? 1 : l.deposited / 5; // mức nạp, để thấy tiến độ
-    mat.color.set(l.lit ? 0xffc766 : 0x7a7298);
-    mat.emissive.set(l.lit ? 0xff9a1f : fill > 0 ? 0x8a5a1a : 0x2a2040);
-    mat.emissiveIntensity = l.lit ? 1.4 : 0.6 + fill;
-    (lm.glow.material as THREE.MeshBasicMaterial).opacity = l.lit ? 0.3 : fill * 0.15;
-    lanternLights[i]!.intensity = l.lit ? 220 : fill * 60;
+// Vệt lướt
+const trailGeo = new THREE.SphereGeometry(0.45, 10, 10);
+const trail: { m: THREE.Mesh; life: number }[] = [];
+
+// Lá bay báo gió
+const LEAVES = 160;
+const leafPos = new Float32Array(LEAVES * 3);
+for (let i = 0; i < LEAVES; i++) { leafPos[i * 3] = (Math.random() - 0.5) * 80; leafPos[i * 3 + 1] = Math.random() * 14; leafPos[i * 3 + 2] = (Math.random() - 0.5) * 80; }
+const leafGeo = new THREE.BufferGeometry();
+leafGeo.setAttribute("position", new THREE.BufferAttribute(leafPos, 3));
+const leaves = new THREE.Points(leafGeo, new THREE.PointsMaterial({ color: P.moteHalo, size: 0.45, transparent: true, opacity: 0.9 }));
+leaves.frustumCulled = false;
+leaves.visible = false;
+scene.add(leaves);
+
+// ---------- nạp Đêm ----------
+function clearPools() {
+  for (const m of shadeModels.values()) shadeLayer.remove(m.group);
+  for (const m of driftModels.values()) driftLayer.remove(m.group);
+  for (const m of charmModels.values()) charmLayer.remove(m);
+  shadeModels.clear(); driftModels.clear(); charmModels.clear();
+  for (const t of trail) { scene.remove(t.m); (t.m.material as THREE.Material).dispose(); }
+  trail.length = 0;
+}
+
+function loadNight(n: Night) {
+  if (ns) scene.remove(ns.group);
+  clearPools();
+  game = new Game(newSeed(), {}, [], { night: n, tornado: true });
+  ns = buildNightScene(game);
+  scene.add(ns.group);
+  input.yaw = 0;
+  input.reset();
+  acc = 0;
+  endAt = 0;
+  prevLeft = game.timeLeft;
+  prevGrounded = true;
+  prevWarning = false;
+  smoothY = game.player.pos[1];
+  playerModel.visible = true;
+}
+
+// ---------- luồng màn hình ----------
+const screens: Screens = new Screens(screensEl, flow, {
+  start: () => { audio.init(); audio.play("click"); flow.startGame(); loadNight(1); showScreen(); },
+  beginNight: () => { audio.init(); audio.startMusic(); loadNight(flow.night); flow.beginNight(); input.lock(); showScreen(); },
+  next: () => {
+    audio.play("click");
+    flow.next();
+    loadNight(flow.night);
+    if (flow.screen === "playing") input.lock();
+    showScreen();
+  },
+  resume: () => { flow.resume(); input.lock(); showScreen(); },
+  restartNight: () => { flow.restartNight(); loadNight(flow.night); input.lock(); showScreen(); },
+  toMenu: () => { flow.toMenu(); audio.stopMusic(); loadNight(1); showScreen(); },
+  openSettings: () => { flow.openSettings(); showScreen(); },
+  closeSettings: () => { flow.closeSettings(); showScreen(); },
+  setSettings: (s) => { settings = s; saveSettings(s); audio.setVolume(s.volume); input.sensitivity = s.sensitivity; },
+}, () => settings);
+
+function showScreen() {
+  screens.render();
+  const playing = flow.screen === "playing" || flow.screen === "paused";
+  hud.show(playing);
+  if (flow.screen !== "playing") { warnBanner.hidden = true; warnFrame.hidden = true; windNote.hidden = true; }
+}
+
+function togglePause() {
+  if (flow.screen === "playing" && game && game.state === "playing") { flow.pause(); input.unlock(); showScreen(); }
+  else if (flow.screen === "paused") { flow.resume(); input.lock(); showScreen(); }
+}
+addEventListener("blur", () => { if (flow.screen === "playing") togglePause(); });
+
+// ---------- xử lý sự kiện của sim ----------
+function afterStep(g: Game) {
+  const p = g.player;
+  for (const s of soundsForEvents(g.events)) audio.play(s);
+  g.events.length = 0;
+  if (prevGrounded && !p.grounded && p.vel[1] > 0 && !p.launched) audio.play("jump");
+  prevGrounded = p.grounded;
+  const left = g.timeLeft;
+  if (countdownBeep(prevLeft, left)) audio.play("countdown");
+  prevLeft = left;
+  if (g.wind.warning && !prevWarning) audio.play("wind");
+  prevWarning = g.wind.warning;
+}
+
+function endNight(g: Game) {
+  flow.onNightEnd({
+    night: g.night, won: g.state === "won", score: g.score,
+    lanternsLit: g.lanterns.filter((l) => l.lit).length, lanternsTotal: g.lanterns.length,
+    flames: g.player.flames, timeLeft: Math.max(0, g.timeLeft),
   });
-  dyn.clear();
-  for (const m of game.motes) { const o = new THREE.Mesh(moteGeo, moteMat); o.position.set(m.pos[0], 0.8, m.pos[2]); dyn.add(o); }
+  input.unlock();
+  showScreen();
+}
 
-  // Bóng Mực: mô hình giữ theo id, quay mặt về phía Mây, lắc nhẹ.
-  const t = now / 1000;
+// ---------- vòng lặp ----------
+let last = performance.now();
+function frame(now: number) {
+  requestAnimationFrame(frame);
+  const dt = Math.min(0.1, (now - last) / 1000);
+  last = now;
+  const g = game;
+  if (!g || !ns) { renderer.render(scene, camera); return; }
+
+  if (flow.screen === "playing") {
+    input.tick(dt);
+    acc += dt;
+    while (acc >= 1 / W.tick_rate && g.state === "playing") {
+      g.setInput(input.state());
+      g.step();
+      afterStep(g);
+      acc -= 1 / W.tick_rate;
+    }
+    if (g.state !== "playing") {
+      if (endAt === 0) endAt = now + 1100; // cho hiệu ứng thắng/thua chạy một chút
+      if (now >= endAt) endNight(g);
+    }
+  } else acc = 0;
+
+  updateVisuals(g, ns, dt, now / 1000);
+  if (flow.screen === "playing" || flow.screen === "paused") hud.update(g, camera, showFps);
+  renderer.render(scene, camera);
+}
+
+function updateVisuals(g: Game, n: NightScene, dt: number, t: number) {
+  const p = g.player;
+  // Mây
+  playerModel.visible = p.respawn_wait === 0;
+  playerModel.position.set(p.pos[0], p.pos[1], p.pos[2]);
+  playerModel.rotation.y = Math.atan2(p.face[0], p.face[1]);
+  playerLight.position.set(p.pos[0], p.pos[1] + 3, p.pos[2]);
+
+  // Camera: sau lưng Mây theo yaw; ở màn hình không chơi thì quay quanh đảo
+  smoothY += (p.pos[1] - smoothY) * Math.min(1, dt * 6);
+  if (flow.screen === "playing" || flow.screen === "paused") {
+    const th = (input.yaw * Math.PI) / 180;
+    const fx = Math.sin(th), fz = Math.cos(th);
+    camera.position.set(p.pos[0] - fx * 14, smoothY + 13, p.pos[2] - fz * 14);
+    camera.lookAt(p.pos[0], smoothY + 1.2, p.pos[2]);
+  } else {
+    const c = g.def.areas[0]!;
+    const a = t * 0.08;
+    camera.position.set(c.cx + Math.cos(a) * 62, 30, c.cz + Math.sin(a) * 62);
+    camera.lookAt(c.cx, 2, c.cz);
+  }
+
+  // Ánh sáng môi trường tăng theo tiến độ thắp đèn
+  const lit = g.lanterns.filter((l) => l.lit).length;
+  ambient.intensity = ambientIntensity(lit, g.lanterns.length);
+
+  // Đèn lồng
+  g.lanterns.forEach((l, i) => {
+    const lm = n.lanterns[i]!;
+    const mat = lm.paper.material as THREE.MeshStandardMaterial;
+    const fill = l.lit ? 1 : l.deposited / T.lantern_cost;
+    mat.color.set(l.lit ? P.lanternOn : P.lanternOff);
+    mat.emissive.set(l.lit ? P.lanternCore : fill > 0 ? P.lanternOn : 0x1a1a24);
+    mat.emissiveIntensity = l.lit ? 1.1 : 0.4 + fill * 0.9;
+    (lm.glow.material as THREE.MeshBasicMaterial).opacity = l.lit ? 0.3 : fill * 0.15;
+    n.lanternLights[i]!.intensity = l.lit ? 220 : fill * 60;
+    n.zoneRings[i]!.visible = l.lit;
+  });
+
+  // Đom đóm (chấm sáng ổn định, không nhấp nháy)
+  const motes = g.motes;
+  moteMesh.count = haloMesh.count = Math.min(motes.length, 96);
+  for (let i = 0; i < moteMesh.count; i++) {
+    const m = motes[i]!;
+    tmpM.makeTranslation(m.pos[0], m.pos[1] + 0.8, m.pos[2]);
+    moteMesh.setMatrixAt(i, tmpM);
+    haloMesh.setMatrixAt(i, tmpM);
+    moteMesh.setColorAt(i, tmpC.set(m.kind === "dropped" ? P.moteHalo : P.moteCore));
+  }
+  moteMesh.instanceMatrix.needsUpdate = haloMesh.instanceMatrix.needsUpdate = true;
+  if (moteMesh.instanceColor) moteMesh.instanceColor.needsUpdate = true;
+
+  // Bóng Mực
   const alive = new Set<string>();
-  for (const s of game.shades) {
+  for (const s of g.shades) {
     alive.add(s.id);
     let sm = shadeModels.get(s.id);
     if (!sm) { sm = makeShade(); shadeModels.set(s.id, sm); shadeLayer.add(sm.group); }
     const stunned = s.state === "stunned";
+    const grow = s.state === "spawning" ? 1 - (s.ticks / W.shade_spawning_ticks) * 0.7 : stunned ? 0.8 : 1;
     sm.group.position.set(s.pos[0], s.pos[1] + Math.sin(t * 3 + s.pos[0]) * 0.12, s.pos[2]);
-    sm.group.rotation.y = Math.atan2(p[0] - s.pos[0], p[2] - s.pos[2]);
-    sm.group.scale.setScalar(stunned ? 0.65 : 1);
-    sm.eyes.forEach((e) => (e.material as THREE.MeshBasicMaterial).color.set(stunned ? 0x7a7088 : 0xffe14a));
+    sm.group.rotation.y = Math.atan2(p.pos[0] - s.pos[0], p.pos[2] - s.pos[2]);
+    sm.group.scale.setScalar(grow);
+    (sm.body.material as THREE.MeshStandardMaterial).color.set(stunned ? P.shadeStunned : P.shadeBody);
+    (sm.edge.material as THREE.MeshBasicMaterial).color.set(stunned ? P.shadeStunned : P.shadeEdge);
+    sm.eyes.forEach((e) => (e.material as THREE.MeshBasicMaterial).color.set(stunned ? P.shadeStunned : P.gold));
     sm.wisps.forEach((w, i) => (w.rotation.z = Math.sin(t * 4 + i * 1.3) * 0.25));
   }
   for (const [id, sm] of shadeModels) if (!alive.has(id)) { shadeLayer.remove(sm.group); shadeModels.delete(id); }
 
-  // Lốc xoáy: dải đỏ cảnh báo, banner, viền đỏ, rồi phễu càn quét.
-  const tn = game.tornado;
-  const warning = running && !!tn && tn.phase === "warn";
-  const sweeping = running && !!tn && tn.phase === "sweep";
+  // Gió Lạc
+  const dAlive = new Set<string>();
+  for (const d of g.drifters) {
+    dAlive.add(d.id);
+    let dm = driftModels.get(d.id);
+    if (!dm) { dm = makeDrifter(); driftModels.set(d.id, dm); driftLayer.add(dm.group); }
+    dm.group.position.set(d.pos[0], d.pos[1] + Math.sin(t * 2 + d.pos[2]) * 0.3, d.pos[2]);
+    dm.group.rotation.y = d.state === "chase" ? Math.atan2(p.pos[0] - d.pos[0], p.pos[2] - d.pos[2]) + Math.PI / 2 : t * 0.7;
+    dm.ribbons.forEach((r, i) => { r.rotation.x = Math.sin(t * 5 + i) * 0.4; });
+    dm.group.scale.setScalar(d.state === "flee" ? 0.8 : 1);
+  }
+  for (const [id, dm] of driftModels) if (!dAlive.has(id)) { driftLayer.remove(dm.group); driftModels.delete(id); }
+
+  // Bùa Gió
+  for (const c of g.charms) {
+    let cm = charmModels.get(c.id);
+    if (!cm) { cm = makeCharm(); charmModels.set(c.id, cm); charmLayer.add(cm); }
+    cm.visible = c.available;
+    cm.position.set(c.pos[0], c.pos[1] + 1.3 + Math.sin(t * 2) * 0.15, c.pos[2]);
+    cm.rotation.y = t * 1.5;
+  }
+
+  // Vệt lướt
+  if (p.dash_ticks > 0 && flow.screen === "playing") {
+    const m = new THREE.Mesh(trailGeo, new THREE.MeshBasicMaterial({ color: P.lanternOn, transparent: true, opacity: 0.5, depthWrite: false }));
+    m.position.set(p.pos[0], p.pos[1] + 1, p.pos[2]);
+    scene.add(m);
+    trail.push({ m, life: 0.35 });
+  }
+  for (let i = trail.length - 1; i >= 0; i--) {
+    const tr = trail[i]!;
+    tr.life -= dt;
+    if (tr.life <= 0) { scene.remove(tr.m); (tr.m.material as THREE.Material).dispose(); trail.splice(i, 1); continue; }
+    (tr.m.material as THREE.MeshBasicMaterial).opacity = (tr.life / 0.35) * 0.5;
+    tr.m.scale.setScalar(tr.life / 0.35 + 0.2);
+  }
+
+  // Gió mạnh: lá bay và cảnh báo
+  const windOn = flow.screen === "playing" && (g.wind.active || g.wind.warning);
+  leaves.visible = windOn;
+  if (windOn) {
+    const a = (g.wind.dir_deg * Math.PI) / 180;
+    const sp = g.wind.active ? 14 : 5;
+    for (let i = 0; i < LEAVES; i++) {
+      leafPos[i * 3] = (leafPos[i * 3] ?? 0) + Math.cos(a) * sp * dt + Math.sin(t * 3 + i) * 0.02;
+      leafPos[i * 3 + 1] = (leafPos[i * 3 + 1] ?? 0) + Math.sin(t * 2 + i) * 0.01;
+      leafPos[i * 3 + 2] = (leafPos[i * 3 + 2] ?? 0) + Math.sin(a) * sp * dt;
+      for (const k of [0, 2]) { // bọc quanh Mây trong hộp 80 m
+        const idx = i * 3 + k;
+        const c = k === 0 ? p.pos[0] : p.pos[2];
+        const v = leafPos[idx] ?? 0;
+        if (v > c + 40) leafPos[idx] = v - 80;
+        else if (v < c - 40) leafPos[idx] = v + 80;
+      }
+    }
+    leafGeo.attributes.position!.needsUpdate = true;
+    windNote.hidden = false;
+    windNote.textContent = g.wind.active ? "Gió mạnh đang thổi!" : "Gió sắp tới, bám chắc!";
+  } else windNote.hidden = true;
+
+  // Lốc xoáy: dải đỏ cảnh báo, banner, viền đỏ, rồi phễu càn quét
+  const tn = g.tornado;
+  const warning = flow.screen === "playing" && !!tn && tn.phase === "warn";
+  const sweeping = flow.screen === "playing" && !!tn && tn.phase === "sweep";
   warnBanner.hidden = !warning;
   warnFrame.hidden = !warning;
   warnStrip.visible = warning || sweeping;
   tornadoModel.group.visible = warning || sweeping;
   if (tn && (warning || sweeping)) {
     const dx = tn.end[0] - tn.start[0], dz = tn.end[1] - tn.start[1];
+    const len = Math.hypot(dx, dz);
     warnStrip.position.set((tn.start[0] + tn.end[0]) / 2, 0, (tn.start[1] + tn.end[1]) / 2);
     warnStrip.rotation.y = -Math.atan2(dz, dx);
+    warnPlane.scale.x = len;
+    warnEdges.forEach((e) => (e.scale.x = len));
     if (warning) {
       const left = tn.ticks_left / W.tick_rate;
       const urgency = 1 - left / W.tornado_warn_s;
@@ -270,14 +388,20 @@ function frame(now: number) {
     tornadoModel.layers.forEach((l, i) => (l.rotation.y = t * (6 + i) * (i % 2 ? -1 : 1)));
     tornadoModel.debris.rotation.y = t * 5;
   }
-
-  const lit = game.lanterns.filter((l) => l.lit).length;
-  hud.textContent =
-    `Đèn: ${lit}/${game.lanterns.length}   Ánh sáng mang: ${game.player.carried}   Ngọn lửa: ${game.player.flames}\n` +
-    `Điểm: ${game.score}   Còn: ${Math.max(0, game.timeLeft).toFixed(0)}s\n` +
-    `Lướt (F): ${game.player.dash_cd > 0 ? game.player.dash_cd.toFixed(1) + "s" : "sẵn sàng"}\n` +
-    "WASD đi · Space nhảy · E nạp đèn · Q xung sáng · F lướt · R chơi lại";
-  renderer.render(scene, camera);
-  requestAnimationFrame(frame);
+  n.clouds.position.x = Math.sin(t * 0.05) * 6;
 }
+
+// ---------- khởi động ----------
+loadNight(1); // nền cho màn menu
+showScreen();
 requestAnimationFrame(frame);
+
+// Chỉ ở chế độ dev (vite dev): hỗ trợ kiểm tra thủ công, không có trong bản build.
+if (import.meta.env.DEV) {
+  (window as any).__ddl = {
+    get game() { return game; },
+    flow,
+    /** Vào thẳng một Đêm (bỏ qua menu), tiện chụp màn hình khi kiểm tra. */
+    go(n: Night) { flow.startGame(); flow.night = n; flow.beginNight(); loadNight(n); showScreen(); },
+  };
+}

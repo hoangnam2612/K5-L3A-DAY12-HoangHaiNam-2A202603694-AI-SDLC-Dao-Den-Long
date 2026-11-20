@@ -1,0 +1,4 @@
+{"description":"M2: bục nhảy (20,0,18) phóng sang đảo B và đáp xuống không rơi","night":2,"seed":1,"ticks":150,
+ "scenario":{"random_motes":false,"random_shades":false,"random_drifters":false,"wind_enabled":false,"player":{"pos":[20,0,18]}},
+ "inputs":{"frames":[]},
+ "expect":{"last":{"player.grounded":true,"player.pos[1]":0,"player.flames":3}}}

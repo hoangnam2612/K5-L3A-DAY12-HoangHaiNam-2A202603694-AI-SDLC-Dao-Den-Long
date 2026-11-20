@@ -1,0 +1,4 @@
+{"description":"F5: pause: tick tăng nhưng sim_tick đứng yên; paused/resumed","night":1,"seed":1,"ticks":50,"snapshot_every":1,
+ "scenario":{"random_motes":false,"random_shades":false,"random_drifters":false,"wind_enabled":false},
+ "inputs":{"frames":[{"tick":0,"move":[0,1]},{"tick":10,"pause":true},{"tick":11,"pause":false},{"tick":30,"pause":true},{"tick":31,"pause":false}]},
+ "expect":{"events":[{"name":"paused","tick":11},{"name":"resumed","tick":31}],"at":{"20":{"state":"paused","sim_tick":10},"30":{"sim_tick":10,"tick":30}},"last":{"sim_tick":30}}}

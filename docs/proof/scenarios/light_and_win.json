@@ -1,0 +1,4 @@
+{"description":"S7/S13: nạp đủ 10 đom đóm thắp đèn cuối → thắng, điểm = 100 + 100 + 2×299 + 3×50","night":1,"seed":1,"ticks":5,
+ "scenario":{"random_motes":false,"random_shades":false,"random_drifters":false,"wind_enabled":false,"player":{"pos":[0,0,23],"carried":10},"lanterns":[{"id":"L2","lit":true},{"id":"L3","lit":true},{"id":"L4","lit":true},{"id":"L5","lit":true}]},
+ "inputs":{"frames":[{"tick":0,"interact":true}]},
+ "expect":{"events":[{"name":"deposit","data":{"lantern_id":"L1","amount":10,"deposited":10}},{"name":"lantern_lit"},{"name":"game_over","data":{"result":"won","reason":"all_lit"}}],"end":{"state":"won","score":948}}}

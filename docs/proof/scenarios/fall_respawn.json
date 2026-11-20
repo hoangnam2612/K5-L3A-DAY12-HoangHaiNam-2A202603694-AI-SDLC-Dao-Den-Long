@@ -1,0 +1,4 @@
+{"description":"S12: rơi khỏi đảo: -1 lửa, mất hết đom đóm, chờ 60 tick, hồi sinh bất tử 90 tick","night":1,"seed":1,"ticks":260,
+ "scenario":{"random_motes":false,"random_shades":false,"random_drifters":false,"wind_enabled":false,"player":{"pos":[0,0,39],"carried":5}},
+ "inputs":{"frames":[{"tick":0,"move":[0,1]},{"tick":30,"move":[0,0]}]},
+ "expect":{"events":[{"name":"player_hit","data":{"by":"fall","flames":2,"dropped":0,"lost":5}}],"last":{"player.flames":2,"player.carried":0}}}

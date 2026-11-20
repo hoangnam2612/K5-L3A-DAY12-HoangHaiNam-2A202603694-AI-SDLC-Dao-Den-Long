@@ -1,0 +1,4 @@
+{"description":"S10: Đêm 1: 2 bóng ở tick 300, rồi 1 bóng mỗi 480 tick","night":1,"seed":1,"ticks":800,"snapshot_every":100,
+ "scenario":{"random_motes":false,"random_drifters":false,"wind_enabled":false,"player":{"flames":99}},
+ "inputs":{"frames":[]},
+ "expect":{"events":[{"name":"shade_spawned","tick":300,"data":{"id":"S1"}},{"name":"shade_spawned","tick":300,"data":{"id":"S2"}},{"name":"shade_spawned","tick":780,"data":{"id":"S3"}}]}}

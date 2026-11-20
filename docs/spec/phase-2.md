@@ -12,11 +12,11 @@ Thứ tự xử lý trong một tick (bắt buộc, cài trong `Game.step`): 1 i
 | S3 | Nhảy 7.0 m/s, g −20; chỉ nhảy khi chạm đất; giữ nút không nhảy lại | physics.test |
 | S4 | Lướt 14 m/s × 12 tick, hồi 90 tick từ lúc bắt đầu, hướng đang đi hoặc hướng quay mặt, giữ độ cao trên không, **không bất tử** | physics.test |
 | S5 | Nhặt đom đóm: XZ ≤1.0, chênh cao ≤1.5, sức chứa 10 | rules.test |
-| S6 | Đom đóm: 20 điểm khác nhau lúc đầu, tick 240k sinh thêm 1 tại điểm trống nếu <30, hết điểm trống thì bỏ lượt | motes.test |
+| S6 | Đom đóm: 20 điểm khác nhau lúc đầu, tick 240k sinh thêm 1 tại điểm trống nếu <30, hết điểm trống thì bỏ lượt | combat.test |
 | S7 | Đèn cần 10, nạp nhiều lần, chọn đèn chưa sáng gần nhất (bằng nhau: id nhỏ), bán kính 2.0 | rules.test |
 | S8 | Vùng an toàn 6 m chỉ cho đèn đã sáng; bóng trong vùng lúc thắp bị đẩy ra ≤30 tick và không gây sát thương | rules.test |
-| S9 | Tỏa Sáng: 3 đom đóm, 5 m (3D từ chân+0.8), hồi 3 s, chốt mục tiêu lúc kích hoạt, choáng 120 tick, đẩy 4 m trong 15 tick, làm mới khi trúng lại, +5/bóng/lần | pulse.test |
-| S10 | Bóng Mực 4.0 m/s (Đêm 3: 4.5), phát hiện 12 m / bỏ đuổi 18 m, chạm ≤1.0 XZ & ≤1.5 cao, tối đa 1 lửa/tick, recoil 2 m/60 tick, lịch sinh 2 con tick 300 rồi theo chu kỳ, id S1,S2… | shades.test |
+| S9 | Tỏa Sáng: 3 đom đóm, 5 m (3D từ chân+0.8), hồi 3 s, chốt mục tiêu lúc kích hoạt, choáng 120 tick, đẩy 4 m trong 15 tick, làm mới khi trúng lại, +5/bóng/lần | combat.test |
+| S10 | Bóng Mực 4.0 m/s (Đêm 3: 4.5), phát hiện 12 m / bỏ đuổi 18 m, chạm ≤1.0 XZ & ≤1.5 cao, tối đa 1 lửa/tick, recoil 2 m/60 tick, lịch sinh 2 con tick 300 rồi theo chu kỳ, id S1,S2… | combat.test |
 | S11 | Bị đánh: −1 lửa, rơi floor(mang/2) vành 1.5–2.5 m TTL 480, bất tử 90 tick | rules.test |
 | S12 | Rơi (Y<−10): đúng 1 lần, −1 lửa, mất hết đom đóm, chờ 60 tick, hồi sinh ở điểm xuất phát, bất tử 90; hết lửa thì thua ngay | physics.test |
 | S13 | Thắng/thua theo thứ tự: hết lửa → thua `no_flames`; sáng hết → thắng (kể cả tick hết giờ); hết giờ → `dawn`. Điểm +10/nạp, +100/đèn, thắng: giây×2 + 50×lửa | rules.test |
@@ -31,15 +31,15 @@ Thứ tự xử lý trong một tick (bắt buộc, cài trong `Game.step`): 1 i
 ## Tính năng mới (Phần 3)
 | ID | AC | Test / scenario |
 |---|---|---|
-| F1 | **Gió Lạc**: sinh tick 1200k tối đa 2 (Đêm 2, 3); idle→chase khi mang ≥5 và ≤15 m; chạm ≤1.2 cướp min(3, mang) rồi flee 240 tick; Tỏa Sáng lúc chase → flee không cướp; lúc flee có đồ → thả đồ thành đom đóm rơi, biến mất sau 120 tick; không mất lửa; không bị vùng an toàn chặn; bất tử không ngăn cướp | drifters.test; `drifter_steal.json` |
-| F2 | **Bùa Gió**: nhặt như đom đóm, 600 tick (nhặt lại làm mới), chạy 7.2 m/s, lướt không hồi chiêu (vẫn cần nhấn lại; nhấn khi đang lướt bị bỏ qua), xuất hiện lại sau 2700 tick; vị trí theo Đêm | charms.test |
-| F3 | **Gió mạnh** (Đêm 3): mỗi 30 s một cơn 5 s hướng ngẫu nhiên, đẩy 2 m/s, báo trước 2 s; `wind` trong snapshot; `wind_enabled` bật/tắt | wind.test |
-| F4 | **Chuỗi 3 Đêm** GUI: Menu → giới thiệu Đêm (lời Ông Đăng) → chơi → kết quả → Đêm kế; thắng Đêm 3 hiện Bình Minh + tổng điểm; thua thì chơi lại Đêm; lửa hồi đầy mỗi Đêm | thủ công + `tests/flow.test.ts` (máy trạng thái) |
-| F5 | **Pause** (Esc/P): logic dừng hẳn; `tick` tăng nhưng `sim_tick`, thời gian, hồi chiêu, spawn, TTL đứng yên; snapshot `paused`; menu Tiếp tục/Chơi lại Đêm/Cài đặt/Về menu | pause.test |
-| F6 | **Cài đặt**: âm lượng, độ nhạy chuột, lưu giữa các lần mở (localStorage) | settings.test |
-| F7 | **Âm thanh**: nhạc nền + hiệu ứng nhặt, thắp, tỏa sáng, bị đánh, nhảy, lướt, thắng, thua, bóng xuất hiện, đếm ngược 10 s cuối (tổng hợp bằng WebAudio, không file) | thủ công + audio.test (bảng sự kiện → âm) |
-| F8 | **HUD**: lửa (trên trái), mm:ss giữa (đỏ + nhấp nháy ≤30 s), đèn k/n + điểm (trên phải), thanh 10 ô, hồi chiêu Lướt/Tỏa Sáng, nhắc "E — Nạp ánh sáng (x/10)", mũi tên chỉ đèn chưa sáng gần nhất khi ngoài màn hình | hud.test (hàm thuần) + thủ công |
-| F9 | **Bảng màu** chuẩn, sai lệch ≤10%/kênh; ánh sáng môi trường = 0.15 + 0.55×(đèn sáng/tổng) | palette.test |
+| F1 | **Gió Lạc**: sinh tick 1200k tối đa 2 (Đêm 2, 3); idle→chase khi mang ≥5 và ≤15 m; chạm ≤1.2 cướp min(3, mang) rồi flee 240 tick; Tỏa Sáng lúc chase → flee không cướp; lúc flee có đồ → thả đồ thành đom đóm rơi, biến mất sau 120 tick; không mất lửa; không bị vùng an toàn chặn; bất tử không ngăn cướp | entities.test; `drifter_steal.json` |
+| F2 | **Bùa Gió**: nhặt như đom đóm, 600 tick (nhặt lại làm mới), chạy 7.2 m/s, lướt không hồi chiêu (vẫn cần nhấn lại; nhấn khi đang lướt bị bỏ qua), xuất hiện lại sau 2700 tick; vị trí theo Đêm | entities.test |
+| F3 | **Gió mạnh** (Đêm 3): mỗi 30 s một cơn 5 s hướng ngẫu nhiên, đẩy 2 m/s, báo trước 2 s; `wind` trong snapshot; `wind_enabled` bật/tắt | entities.test |
+| F4 | **Chuỗi 3 Đêm** GUI: Menu → giới thiệu Đêm (lời Ông Đăng) → chơi → kết quả → Đêm kế; thắng Đêm 3 hiện Bình Minh + tổng điểm; thua thì chơi lại Đêm; lửa hồi đầy mỗi Đêm | thủ công + `tests/ui.test.ts` (Flow) (máy trạng thái) |
+| F5 | **Pause** (Esc/P): logic dừng hẳn; `tick` tăng nhưng `sim_tick`, thời gian, hồi chiêu, spawn, TTL đứng yên; snapshot `paused`; menu Tiếp tục/Chơi lại Đêm/Cài đặt/Về menu | entities.test |
+| F6 | **Cài đặt**: âm lượng, độ nhạy chuột, lưu giữa các lần mở (localStorage) | ui.test |
+| F7 | **Âm thanh**: nhạc nền + hiệu ứng nhặt, thắp, tỏa sáng, bị đánh, nhảy, lướt, thắng, thua, bóng xuất hiện, đếm ngược 10 s cuối (tổng hợp bằng WebAudio, không file) | thủ công + ui.test (bảng sự kiện → âm) |
+| F8 | **HUD**: lửa (trên trái), mm:ss giữa (đỏ + nhấp nháy ≤30 s), đèn k/n + điểm (trên phải), thanh 10 ô, hồi chiêu Lướt/Tỏa Sáng, nhắc "E — Nạp ánh sáng (x/10)", mũi tên chỉ đèn chưa sáng gần nhất khi ngoài màn hình | ui.test (hàm thuần) + thủ công |
+| F9 | **Bảng màu** chuẩn, sai lệch ≤10%/kênh; ánh sáng môi trường = 0.15 + 0.55×(đèn sáng/tổng) | ui.test |
 
 ## Contract v1.1
 | ID | AC | Test |
@@ -47,8 +47,8 @@ Thứ tự xử lý trong một tick (bắt buộc, cài trong `Game.step`): 1 i
 | C1 | `contract_version:"1.1"`, thêm `dash_*`, `night2_duration_s`, `night3_duration_s`; `--night 1|2|3` | contract.test |
 | C2 | Snapshot có `night`, `wind`, `player.{vel,grounded,invuln,dash_cd_s,pulse_cd_s,charm_s}`, mảng `motes/drifters/charms`; trạng thái bóng chỉ dùng spawning/wander/chase/recoil/stunned | contract.test |
 | C3 | Scenario v1.1 (invuln/dash_cd/pulse_cd/charm ticks, shades state, drifters, charms, random_drifters, wind_enabled) và input `dash`/`pause`; sai định dạng → mã 2 | contract.test |
-| C4 | Event mới: dash, charm_picked, drifter_steal, drifter_drop, night_start, paused, resumed; `player_hit` do rơi có `lost` | events.test |
-| C5 | Tất định (cả 3 Đêm, có pause); 1 Đêm đầy đủ (≤21.600 tick) ≤30 s | determinism/perf.test |
+| C4 | Event mới: dash, charm_picked, drifter_steal, drifter_drop, night_start, paused, resumed; `player_hit` do rơi có `lost` | contract.test |
+| C5 | Tất định (cả 3 Đêm, có pause); 1 Đêm đầy đủ (≤21.600 tick) ≤30 s | contract.test |
 
 ## Sáng tạo giữ lại (không đổi headless)
 Lốc xoáy càn quét + dải đỏ cảnh báo (chỉ game có giao diện, cả 3 Đêm, tắt trong headless). Lướt bất tử của Phase 1 **bị bỏ** theo ticket.

@@ -1,0 +1,4 @@
+{"description":"S9: Tỏa Sáng làm choáng 120 tick, đẩy 4 m, +5 điểm","night":1,"seed":1,"ticks":15,"snapshot_every":1,
+ "scenario":{"random_motes":false,"random_shades":false,"random_drifters":false,"wind_enabled":false,"player":{"carried":5},"shades":[{"id":"S1","pos":[3,1,0]}]},
+ "inputs":{"frames":[{"tick":0,"pulse":true},{"tick":1,"pulse":false}]},
+ "expect":{"events":[{"name":"pulse","tick":1,"data":{"stunned_ids":["S1"]}}],"at":{"1":{"shades[0].state":"stunned","shades[0].state_ticks_left":120,"score":5}},"last":{"shades[0].pos[0]":7,"player.carried":2}}}
