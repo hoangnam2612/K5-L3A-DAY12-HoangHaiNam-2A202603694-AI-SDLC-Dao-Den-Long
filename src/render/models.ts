@@ -2,8 +2,8 @@ import * as THREE from "three";
 import { PALETTE as P } from "./palette";
 
 // Mô hình dựng hoàn toàn bằng hình khối cơ bản của Three.js (không dùng asset ngoài).
-const std = (color: number, emissive = 0x000000, extra: THREE.MeshStandardMaterialParameters = {}) =>
-  new THREE.MeshStandardMaterial({ color, emissive, roughness: 0.85, ...extra });
+const std = (color: number, emissive = 0x000000, extra: THREE.MeshLambertMaterialParameters = {}) =>
+  new THREE.MeshLambertMaterial({ color, emissive, ...extra });
 const basic = (color: number, extra: THREE.MeshBasicMaterialParameters = {}) => new THREE.MeshBasicMaterial({ color, ...extra });
 
 /** Mây: áo, khăn, đầu, mũ có chiếc đèn nhỏ. Gốc tọa độ ở chân. */
@@ -99,7 +99,7 @@ export function makeDrifter(): DrifterModel {
   for (let i = 0; i < 3; i++) {
     const m = new THREE.Mesh(
       new THREE.PlaneGeometry(2.6, 0.45, 10, 1),
-      new THREE.MeshStandardMaterial({ color: P.drifter, emissive: P.drifter, emissiveIntensity: 0.25, side: THREE.DoubleSide, transparent: true, opacity: 0.85 }),
+      new THREE.MeshLambertMaterial({ color: P.drifter, emissive: P.drifter, emissiveIntensity: 0.25, side: THREE.DoubleSide, transparent: true, opacity: 0.85 }),
     );
     m.position.y = i * 0.28 - 0.28;
     m.rotation.z = (i - 1) * 0.35;

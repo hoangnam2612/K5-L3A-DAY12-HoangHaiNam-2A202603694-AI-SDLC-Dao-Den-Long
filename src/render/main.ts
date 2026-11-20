@@ -16,8 +16,11 @@ import { makeTornado } from "./tornadoModel";
 // Render chỉ ĐỌC trạng thái từ lõi sim; mọi luật chơi nằm ở src/sim.
 const showFps = import.meta.env.DEV || new URLSearchParams(location.search).has("fps");
 
-const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+// Hiệu năng: không MSAA khi màn hình đã có DPR cao; độ phân giải tự giảm/tăng theo FPS (adaptResolution).
+const renderer = new THREE.WebGLRenderer({ antialias: devicePixelRatio <= 1, powerPreference: "high-performance" });
+const MAX_PIXEL_RATIO = Math.min(devicePixelRatio, 1.5);
+let pixelRatio = MAX_PIXEL_RATIO;
+renderer.setPixelRatio(pixelRatio);
 renderer.setSize(innerWidth, innerHeight);
 document.getElementById("app")!.appendChild(renderer.domElement);
 const scene = new THREE.Scene();
@@ -31,6 +34,8 @@ moon.position.set(-20, 40, -10);
 scene.add(moon);
 const playerLight = new THREE.PointLight(P.lanternOn, 70, 30);
 scene.add(playerLight);
+// Chỉ 3 đèn điểm dùng chung cho các đèn lồng gần Mây nhất (nhiều đèn điểm làm nặng GPU); số đèn cố định nên không biên dịch lại shader.
+const lanternPool = Array.from({ length: 3 }, () => { const l = new THREE.PointLight(P.lanternOn, 0, 30); scene.add(l); return l; });
 addEventListener("resize", () => {
   renderer.setSize(innerWidth, innerHeight);
   camera.aspect = innerWidth / innerHeight;
@@ -199,6 +204,25 @@ function endNight(g: Game) {
   showScreen();
 }
 
+// ---------- độ phân giải thích ứng ----------
+// Mục tiêu ≥ 30 FPS trên máy yếu: nếu FPS < 40 thì giảm độ phân giải render, nếu > 58 thì tăng dần lại (tối đa MAX_PIXEL_RATIO).
+let fpsTime = 0, fpsFrames = 0, lastAdjust = performance.now();
+function adaptResolution(now: number, dt: number) {
+  if (flow.screen !== "playing") { fpsTime = 0; fpsFrames = 0; lastAdjust = now; return; }
+  fpsTime += dt; fpsFrames++;
+  if (now - lastAdjust < 1500) return;
+  const fps = fpsFrames / fpsTime;
+  fpsTime = 0; fpsFrames = 0; lastAdjust = now;
+  let next = pixelRatio;
+  if (fps < 40) next = Math.max(0.5, pixelRatio * 0.85);
+  else if (fps > 58) next = Math.min(MAX_PIXEL_RATIO, pixelRatio * 1.1);
+  if (Math.abs(next - pixelRatio) > 0.02) {
+    pixelRatio = next;
+    renderer.setPixelRatio(pixelRatio);
+    renderer.setSize(innerWidth, innerHeight);
+  }
+}
+
 // ---------- vòng lặp ----------
 let last = performance.now();
 function frame(now: number) {
@@ -223,9 +247,17 @@ function frame(now: number) {
     }
   } else acc = 0;
 
+  const t0 = performance.now();
   updateVisuals(g, ns, dt, now / 1000);
-  if (flow.screen === "playing" || flow.screen === "paused") hud.update(g, camera, showFps);
+  if (flow.screen === "playing" || flow.screen === "paused") hud.update(g, camera, showFps, ` · ${pixelRatio.toFixed(2)}×`);
+  const t1 = performance.now();
   renderer.render(scene, camera);
+  adaptResolution(now, dt);
+  if (import.meta.env.DEV) { // đo CPU: cập nhật cảnh vs gửi lệnh vẽ (EMA)
+    const p = ((window as any).__perf ??= { updateMs: 0, renderMs: 0 });
+    p.updateMs += (t1 - t0 - p.updateMs) * 0.1;
+    p.renderMs += (performance.now() - t1 - p.renderMs) * 0.1;
+  }
 }
 
 function updateVisuals(g: Game, n: NightScene, dt: number, t: number) {
@@ -263,8 +295,17 @@ function updateVisuals(g: Game, n: NightScene, dt: number, t: number) {
     mat.emissive.set(l.lit ? P.lanternCore : fill > 0 ? P.lanternOn : 0x1a1a24);
     mat.emissiveIntensity = l.lit ? 1.1 : 0.4 + fill * 0.9;
     (lm.glow.material as THREE.MeshBasicMaterial).opacity = l.lit ? 0.3 : fill * 0.15;
-    n.lanternLights[i]!.intensity = l.lit ? 220 : fill * 60;
     n.zoneRings[i]!.visible = l.lit;
+  });
+  const ranked = g.lanterns
+    .map((l) => ({ l, d: Math.hypot(l.pos[0] - p.pos[0], l.pos[2] - p.pos[2]) }))
+    .sort((a, b) => a.d - b.d);
+  lanternPool.forEach((light, k) => {
+    const r = ranked[k];
+    if (!r) { light.intensity = 0; return; }
+    const fill = r.l.lit ? 1 : r.l.deposited / T.lantern_cost;
+    light.position.set(r.l.pos[0], r.l.pos[1] + 4, r.l.pos[2]);
+    light.intensity = r.l.lit ? 220 : fill * 60;
   });
 
   // Đom đóm (chấm sáng ổn định, không nhấp nháy)
@@ -400,6 +441,8 @@ requestAnimationFrame(frame);
 if (import.meta.env.DEV) {
   (window as any).__ddl = {
     get game() { return game; },
+    renderer,
+    scene,
     flow,
     /** Vào thẳng một Đêm (bỏ qua menu), tiện chụp màn hình khi kiểm tra. */
     go(n: Night) { flow.startGame(); flow.night = n; flow.beginNight(); loadNight(n); showScreen(); },

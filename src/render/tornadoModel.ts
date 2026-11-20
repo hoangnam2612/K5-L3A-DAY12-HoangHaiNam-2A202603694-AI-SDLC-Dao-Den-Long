@@ -12,14 +12,14 @@ export function makeTornado(): TornadoModel {
     const rTop = 1.5 + i * 0.55;
     const m = new THREE.Mesh(
       new THREE.CylinderGeometry(rTop, rBottom, 2.4, 14, 1, true),
-      new THREE.MeshStandardMaterial({ color: colors[i]!, emissive: 0x1a1030, transparent: true, opacity: 0.7, side: THREE.DoubleSide, roughness: 1 }),
+      new THREE.MeshLambertMaterial({ color: colors[i]!, emissive: 0x1a1030, transparent: true, opacity: 0.7, side: THREE.DoubleSide }),
     );
     m.position.y = 1.2 + i * 2.2;
     g.add(m);
     layers.push(m);
   }
   const debris = new THREE.Group();
-  const chunk = new THREE.Mesh(new THREE.DodecahedronGeometry(0.25, 0), new THREE.MeshStandardMaterial({ color: 0x6b5a4a, roughness: 0.9 }));
+  const chunk = new THREE.Mesh(new THREE.DodecahedronGeometry(0.25, 0), new THREE.MeshLambertMaterial({ color: 0x6b5a4a }));
   for (let i = 0; i < 14; i++) {
     const c = chunk.clone();
     const a = (i / 14) * Math.PI * 2;

@@ -6,13 +6,12 @@ import { PALETTE as P } from "./palette";
 export interface NightScene {
   group: THREE.Group;
   lanterns: LanternModel[];
-  lanternLights: THREE.PointLight[];
   zoneRings: THREE.Mesh[];
   clouds: THREE.Group;
 }
 
-const sandMat = () => new THREE.MeshStandardMaterial({ color: P.sand, roughness: 0.95 });
-const grassMat = () => new THREE.MeshStandardMaterial({ color: P.grass, roughness: 0.95 });
+const sandMat = () => new THREE.MeshLambertMaterial({ color: P.sand });
+const grassMat = () => new THREE.MeshLambertMaterial({ color: P.grass });
 
 /** Dựng bản đồ tĩnh của một Đêm từ hình dạng địa hình của sim (nguồn sự thật duy nhất). */
 export function buildNightScene(game: Game): NightScene {
@@ -47,11 +46,11 @@ export function buildNightScene(game: Game): NightScene {
       }
     } else if (s.kind === "rect") { // cầu tre không lan can
       const w = s.x1 - s.x0, d = s.z1 - s.z0;
-      const bridge = new THREE.Mesh(new THREE.BoxGeometry(w, 0.3, d), new THREE.MeshStandardMaterial({ color: P.wood, roughness: 0.9 }));
+      const bridge = new THREE.Mesh(new THREE.BoxGeometry(w, 0.3, d), new THREE.MeshLambertMaterial({ color: P.wood }));
       bridge.position.set((s.x0 + s.x1) / 2, s.h - 0.15, (s.z0 + s.z1) / 2);
       group.add(bridge);
       for (let x = s.x0 + 0.5; x < s.x1; x += 1) { // thanh ngang cho giống cầu tre
-        const plank = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.1, d + 0.2), new THREE.MeshStandardMaterial({ color: 0x4a3320 }));
+        const plank = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.1, d + 0.2), new THREE.MeshLambertMaterial({ color: 0x4a3320 }));
         plank.position.set(x, s.h + 0.02, (s.z0 + s.z1) / 2);
         group.add(plank);
       }
@@ -70,7 +69,7 @@ export function buildNightScene(game: Game): NightScene {
       const len = Math.hypot(s.s1 - s.s0, s.h0 - s.h1);
       const holder = new THREE.Group();
       holder.rotation.y = -Math.atan2(s.uz, s.ux);
-      const slab = new THREE.Mesh(new THREE.BoxGeometry(len, 0.3, s.hw * 2), new THREE.MeshStandardMaterial({ color: P.wood, roughness: 0.9 }));
+      const slab = new THREE.Mesh(new THREE.BoxGeometry(len, 0.3, s.hw * 2), new THREE.MeshLambertMaterial({ color: P.wood }));
       slab.rotation.z = -Math.atan2(s.h0 - s.h1, s.s1 - s.s0);
       slab.position.set((s.s0 + s.s1) / 2, (s.h0 + s.h1) / 2 - 0.15, 0);
       holder.add(slab);
@@ -91,20 +90,16 @@ export function buildNightScene(game: Game): NightScene {
   }
 
   const lanterns: LanternModel[] = [];
-  const lanternLights: THREE.PointLight[] = [];
   const zoneRings: THREE.Mesh[] = [];
   for (const l of game.lanterns) {
     const m = makeLantern();
     m.group.position.set(l.pos[0], l.pos[1], l.pos[2]);
-    const light = new THREE.PointLight(P.lanternOn, 0, 30);
-    light.position.set(l.pos[0], l.pos[1] + 4, l.pos[2]);
     const ring = new THREE.Mesh(new THREE.TorusGeometry(6, 0.06, 6, 64), new THREE.MeshBasicMaterial({ color: P.lanternOn, transparent: true, opacity: 0.35 }));
     ring.rotation.x = Math.PI / 2;
     ring.position.set(l.pos[0], l.pos[1] + 0.08, l.pos[2]);
     ring.visible = false;
-    group.add(m.group, light, ring);
+    group.add(m.group, ring);
     lanterns.push(m);
-    lanternLights.push(light);
     zoneRings.push(ring);
   }
 
@@ -115,8 +110,8 @@ export function buildNightScene(game: Game): NightScene {
   group.add(sea);
   const clouds = new THREE.Group();
   const puff = new THREE.SphereGeometry(1, 10, 8);
-  const puffMat = new THREE.MeshStandardMaterial({ color: 0x2c6a85, transparent: true, opacity: 0.55, roughness: 1 });
-  for (let i = 0; i < 70; i++) {
+  const puffMat = new THREE.MeshBasicMaterial({ color: 0x2c6a85, transparent: true, opacity: 0.55, depthWrite: false });
+  for (let i = 0; i < 28; i++) {
     const m = new THREE.Mesh(puff, puffMat);
     const a = rand() * Math.PI * 2, r = 40 + rand() * 160;
     m.position.set(Math.cos(a) * r + (game.night === 2 ? 35 : 0), -8 + rand() * 3, Math.sin(a) * r);
@@ -125,7 +120,7 @@ export function buildNightScene(game: Game): NightScene {
   }
   group.add(clouds);
   group.add(makeStars(400, decoRng(7)));
-  return { group, lanterns, lanternLights, zoneRings, clouds };
+  return { group, lanterns, zoneRings, clouds };
 }
 
 /** Trang trí không đè lên đèn, điểm xuất phát hay điểm sinh quan trọng. */

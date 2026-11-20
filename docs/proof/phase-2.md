@@ -34,7 +34,7 @@ Bộ `tests/rules.test.ts` cũ được viết lại; nhóm test mới nằm ở
 Test giữ nguyên ý: tất định theo seed, tick/snapshot/`--ticks`, scenario không phát event, input yaw/chuẩn hóa/giữ giá trị cũ, thắng/thua/dawn, Mây bất tử không bị đánh, tối đa 1 lửa/tick, lốc xoáy (tắt trong headless, chu kỳ, cảnh báo, sát thương).
 
 ## Chưa đạt / chưa kiểm
-- **FPS ≥ 30 ở 1280×720 chưa đo được.** Khung trình duyệt trong môi trường làm việc chạy rất chậm (vài FPS, render phần mềm) nên không có số đo đáng tin. HUD có bộ đếm FPS (`npm run dev`, hoặc thêm `?fps` vào URL bản build) để đo trên máy thật; cần điền kết quả vào đây.
-- Âm thanh chưa nghe thử (môi trường làm việc không có loa); logic bảng sự kiện→âm đã test, cách tổng hợp chưa kiểm tai.
-- Pointer lock/chuột và phím Esc kiểm bằng code, chưa thao tác thật với chuột.
+- **FPS ≥ 30 ở 1280×720: chưa có số đo xác nhận.** Lần chạy đầu trên máy người dùng không đạt 30 FPS. Phân tích (đo trong trình duyệt, `window.__perf` và `renderer.info` ở chế độ dev): logic game chỉ ~0.3–0.5 ms/khung, hình học nhẹ (~15 nghìn tam giác, 60–70 draw call); nặng ở GPU: 6–8 đèn điểm với vật liệu PBR, ~100 mesh trong suốt, độ phân giải tới ×2. Đã tối ưu: nhóm 3 đèn điểm dùng chung (tổng 4 đèn), vật liệu Lambert, mây giảm từ 70 xuống 28 và không cần ánh sáng, độ phân giải tối đa ×1.5, tắt MSAA khi DPR>1, **độ phân giải tự thích ứng** (FPS<40 thì giảm, >58 thì tăng). HUD hiển thị `NN FPS · hệ số` (`npm run dev`, hoặc thêm `?fps` vào URL bản build). Cần đo lại trên máy thật và điền kết quả vào đây.
+- Âm thanh đã được người dùng nghe thử: có tiếng. Chưa đánh giá chi tiết từng hiệu ứng.
+- Chuột: người dùng xác nhận chuột điều khiển được. Pointer lock/Esc kiểm bằng code.
 - Các giả định P1–P16 có thể lệch test ẩn của giảng viên (nhất là P1 hướng góc, P4 điểm xuất phát Đêm 3, P12 định dạng `invuln`).

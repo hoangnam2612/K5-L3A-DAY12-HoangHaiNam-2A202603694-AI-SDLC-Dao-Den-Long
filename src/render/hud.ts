@@ -69,7 +69,7 @@ export class Hud {
 
   show(on: boolean) { this.root.hidden = !on; if (on) this.cache.clear(); }
 
-  update(game: Game, camera: THREE.Camera, showFps: boolean) {
+  update(game: Game, camera: THREE.Camera, showFps: boolean, extra = "") {
     const p = game.player;
     this.set("flames", this.flames, Array.from({ length: T.flames }, (_, i) => `<span class="flame ${i < p.flames ? "on" : "off"}">${FLAME}</span>`).join(""));
     this.setText("night", this.night, `Đêm ${game.night} · ${game.def.name}`);
@@ -116,7 +116,7 @@ export class Hud {
     this.frames++;
     const now = performance.now();
     if (now - this.fpsT >= 500) {
-      this.fps.textContent = showFps ? `${Math.round((this.frames * 1000) / (now - this.fpsT))} FPS` : "";
+      this.fps.textContent = showFps ? `${Math.round((this.frames * 1000) / (now - this.fpsT))} FPS${extra}` : "";
       this.frames = 0;
       this.fpsT = now;
     }
