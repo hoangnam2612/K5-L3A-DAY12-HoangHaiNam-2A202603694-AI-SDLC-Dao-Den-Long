@@ -1,6 +1,6 @@
 // Cài đặt người chơi (âm lượng, độ nhạy chuột), lưu giữa các lần mở game bằng localStorage.
-export interface Settings { volume: number; sensitivity: number }
-export const DEFAULT_SETTINGS: Settings = { volume: 0.7, sensitivity: 1 };
+export interface Settings { volume: number; sensitivity: number; colorblind: boolean }
+export const DEFAULT_SETTINGS: Settings = { volume: 0.7, sensitivity: 1, colorblind: false };
 export const SETTINGS_KEY = "dao-den-long.settings.v1";
 
 type StorageLike = Pick<Storage, "getItem" | "setItem">;
@@ -13,6 +13,7 @@ export function sanitize(raw: unknown): Settings {
   return {
     volume: clamp(r.volume, 0, 1, DEFAULT_SETTINGS.volume),
     sensitivity: clamp(r.sensitivity, 0.2, 3, DEFAULT_SETTINGS.sensitivity),
+    colorblind: r.colorblind === true,
   };
 }
 

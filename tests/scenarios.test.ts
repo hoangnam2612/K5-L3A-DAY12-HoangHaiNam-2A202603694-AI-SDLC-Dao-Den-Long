@@ -19,7 +19,7 @@ function get(obj: any, path: string): unknown {
 
 describe("scenario headless (docs/proof/scenarios)", () => {
   it("có scenario cho mỗi tính năng mới", () => {
-    for (const name of ["drifter_steal", "drifter_pulse_drop", "charm_dash", "charm_pickup", "wind_gust", "pause_resume", "fall_respawn", "jump_pad_night2", "jump_pad_night3"]) {
+    for (const name of ["drifter_steal", "drifter_pulse_drop", "charm_dash", "charm_pickup", "wind_gust", "pause_resume", "fall_respawn", "jump_pad_night2", "jump_pad_night3", "fuel_refuel", "fuel_out", "relight", "shade_drain", "dawn_win", "dawn_lose"]) {
       expect(files).toContain(`${name}.json`);
     }
   });

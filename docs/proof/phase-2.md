@@ -38,3 +38,5 @@ Test giữ nguyên ý: tất định theo seed, tick/snapshot/`--ticks`, scenari
 - Âm thanh đã được người dùng nghe thử: có tiếng. Chưa đánh giá chi tiết từng hiệu ứng.
 - Chuột: người dùng xác nhận chuột điều khiển được. Pointer lock/Esc kiểm bằng code.
 - Các giả định P1–P16 có thể lệch test ẩn của giảng viên (nhất là P1 hướng góc, P4 điểm xuất phát Đêm 3, P12 định dạng `invuln`).
+
+> Ghi chú Phase 3: Ticket-03 thay một số luật ở tài liệu này (thời gian Đêm, luật thắng, điểm, vùng an toàn, hành vi bóng wander). Bằng chứng khớp tag `phase-2`; hiện hành xem `docs/proof/phase-3.md`. Các file `sample-run-night*.jsonl` đã được tạo lại theo định dạng v1.2 (bản v1.1 xem ở tag `phase-2`).

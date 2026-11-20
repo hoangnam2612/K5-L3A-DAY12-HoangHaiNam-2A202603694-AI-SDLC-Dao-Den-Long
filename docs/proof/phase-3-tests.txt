@@ -1,0 +1,222 @@
+
+ RUN  v2.1.9 D:/VinUni/Lab/Lab12/K5-L3A-DAY12-HoangHaiNam-2A202603694-AI-SDLC-Dao-Den-Long
+
+ ✓ tests/ui.test.ts > F4 chuỗi 3 Đêm (máy trạng thái) > Menu → giới thiệu Đêm 1 → chơi → thắng → kết quả → giới thiệu Đêm 2 → ... → Bình Minh với tổng điểm
+ ✓ tests/ui.test.ts > F4 chuỗi 3 Đêm (máy trạng thái) > thua thì chơi lại Đêm đó và điểm Đêm thua không được cộng
+ ✓ tests/ui.test.ts > F4 chuỗi 3 Đêm (máy trạng thái) > tạm dừng: Tiếp tục / Chơi lại Đêm / Cài đặt / Về menu
+ ✓ tests/ui.test.ts > F4 chuỗi 3 Đêm (máy trạng thái) > cài đặt mở từ menu thì quay về menu; pause chỉ có tác dụng khi đang chơi
+ ✓ tests/ui.test.ts > F4 chuỗi 3 Đêm (máy trạng thái) > có lời Ông Đăng cho từng Đêm
+ ✓ tests/ui.test.ts > F6 cài đặt được lưu giữa các lần mở > mặc định khi chưa có gì
+ ✓ tests/ui.test.ts > F6 cài đặt được lưu giữa các lần mở > lưu rồi tải lại thấy đúng giá trị
+ ✓ tests/ui.test.ts > F6 cài đặt được lưu giữa các lần mở > dữ liệu hỏng hoặc ngoài khoảng được làm sạch; storage lỗi thì dùng mặc định
+ ✓ tests/ui.test.ts > F8 HUD > đồng hồ mm:ss, đỏ và nhấp nháy khi còn ≤ 30 s
+ ✓ tests/ui.test.ts > F8 HUD > thanh đom đóm 10 ô, số ô sáng = số đang mang
+ ✓ tests/ui.test.ts > F8 HUD > nhắc nạp đèn hiện tiến độ x/10
+ ✓ tests/ui.test.ts > F8 HUD > mũi tên chỉ đèn chưa sáng: chỉ hiện khi ngoài màn hình, quay đúng hướng
+ ✓ tests/ui.test.ts > F8 HUD > biểu tượng hồi chiêu
+ ✓ tests/ui.test.ts > F9 bảng màu chuẩn > mọi màu trong bảng nằm trong sai lệch tối đa 10% mỗi kênh RGB
+ ✓ tests/ui.test.ts > F9 bảng màu chuẩn > ánh sáng môi trường = 0.15 + 0.55 × (đèn sáng / tổng đèn)
+ ✓ tests/ui.test.ts > F7 âm thanh: sự kiện của sim → hiệu ứng > phủ đủ các hiệu ứng ticket yêu cầu (nhặt, thắp đèn, tỏa sáng, bị đánh, lướt, thắng, thua, bóng xuất hiện)
+ ✓ tests/ui.test.ts > F7 âm thanh: sự kiện của sim → hiệu ứng > rơi khỏi đảo có tiếng riêng; Bùa Gió và Gió Lạc cướp cũng có tiếng
+ ✓ tests/ui.test.ts > F7 âm thanh: sự kiện của sim → hiệu ứng > đếm ngược 10 giây cuối: kêu mỗi khi sang giây nguyên mới trong (0, 10]
+ ✓ tests/ui.test.ts > Ticket-03: HUD đèn cạn dầu > ngưỡng đèn sáng tối thiểu: ceil(0.6 × tổng) = 3/5, 4/6, 5/7
+ ✓ tests/ui.test.ts > Ticket-03: HUD đèn cạn dầu > nhắc châm dầu cho đèn đang sáng; nhắc thắp lại hiện tiến độ x/5
+ ✓ tests/ui.test.ts > Ticket-03: HUD đèn cạn dầu > đèn sắp hết dầu (fuel < 30) nhấp nháy 1 Hz
+ ✓ tests/ui.test.ts > Ticket-03: HUD đèn cạn dầu > thanh đom đóm theo sức chứa tới 20 ô
+ ✓ tests/ui.test.ts > CB chế độ mù màu (Ticket-03) > viền và mắt Bóng Mực #7A3CFF → #00B3FF; màu cảnh báo #FF5A5F → #FFFFFF
+ ✓ tests/ui.test.ts > CB chế độ mù màu (Ticket-03) > cài đặt 'Bảng màu dễ phân biệt' được lưu giữa các lần mở; mặc định tắt
+ ✓ tests/ui.test.ts > CB chế độ mù màu (Ticket-03) > sự kiện mới có âm thanh: châm dầu, đèn tắt, bóng hút dầu
+ ✓ tests/fuel.test.ts > FU1-FU2 nhiên liệu > vừa thắp thì fuel = 100; sau đó hao 1.0/s (1/60 mỗi tick)
+ ✓ tests/fuel.test.ts > FU1-FU2 nhiên liệu > đèn đặt sẵn lit:true không có fuel thì mặc định 100; có fuel thì dùng giá trị đó
+ ✓ tests/fuel.test.ts > FU1-FU2 nhiên liệu > đèn tắt có fuel 0, deposited 0; ever_lit đặt được qua scenario
+ ✓ tests/fuel.test.ts > FU3-FU5 châm dầu > used = min(đang mang, ceil((100 - fuel)/10)); fuel += 10 × used; event refuel; +5 điểm mỗi đom đóm
+ ✓ tests/fuel.test.ts > FU3-FU5 châm dầu > không dùng quá số cần: thiếu 60 thì chỉ cần 6 đom đóm, fuel chặn ở 100
+ ✓ tests/fuel.test.ts > FU3-FU5 châm dầu > châm dầu không làm tăng sức chứa (không tính là thắp)
+ ✓ tests/fuel.test.ts > FU3-FU5 châm dầu > đèn đầy dầu không được chọn khi tương tác: không event, không điểm, giữ nguyên đom đóm
+ ✓ tests/fuel.test.ts > FU3-FU5 châm dầu > hao dầu ở bước 2 xảy ra trước tương tác: đèn vừa thắp không bao giờ 'đầy' khi bấm E (99.98 thì cần 1 đom đóm)
+ ✓ tests/fuel.test.ts > FU3-FU5 châm dầu > chọn đèn nhận được gần nhất, bằng nhau thì id nhỏ hơn (cả đèn sáng chưa đầy dầu)
+ ✓ tests/fuel.test.ts > FU6-FU7 hết dầu và thắp lại > fuel ≤ 0: đèn tắt ngay sau bước 2, deposited = 0, event lantern_out, nhớ ever_lit
+ ✓ tests/fuel.test.ts > FU6-FU7 hết dầu và thắp lại > đèn đã từng sáng chỉ cần 5 đom đóm để thắp lại; đèn chưa từng sáng vẫn cần 10
+ ✓ tests/fuel.test.ts > FU6-FU7 hết dầu và thắp lại > lần thắp đầu có relight:false; hết dầu rồi thắp lại thì relit_count tăng
+ ✓ tests/fuel.test.ts > CP1 sức chứa tăng dần > 10 + 2 × successful_lights, tối đa 20
+ ✓ tests/fuel.test.ts > CP1 sức chứa tăng dần > thắp thành công (kể cả thắp lại) tăng sức chứa; đèn đặt sẵn bằng scenario không tính
+ ✓ tests/fuel.test.ts > CP1 sức chứa tăng dần > nhặt đom đóm bị giới hạn bởi sức chứa hiện tại
+ ✓ tests/fuel.test.ts > DR1 vùng an toàn chỉ khi fuel ≥ 30 > đúng 30 vẫn còn vùng an toàn; dưới 30 thì mất
+ ✓ tests/fuel.test.ts > DR2-DR5 Bóng Mực hút dầu > bóng wander ưu tiên đèn sáng fuel<30 (dù đèn tắt gần hơn); không có đèn yếu thì đi tới đèn tắt gần nhất
+ ✓ tests/fuel.test.ts > DR2-DR5 Bóng Mực hút dầu > bằng khoảng cách thì chọn đèn id nhỏ hơn
+ ✓ tests/fuel.test.ts > DR2-DR5 Bóng Mực hút dầu > bóng chase không đổi mục tiêu
+ ✓ tests/fuel.test.ts > DR2-DR5 Bóng Mực hút dầu > cách đèn ≤ 2 m: sang drain, đứng yên và hút 5/s liên tục cộng với hao 1/s
+ ✓ tests/fuel.test.ts > DR2-DR5 Bóng Mực hút dầu > nhiều con cộng dồn
+ ✓ tests/fuel.test.ts > DR2-DR5 Bóng Mực hút dầu > event fuel_drain ghi mỗi 60 tick khi đang hút
+ ✓ tests/fuel.test.ts > DR2-DR5 Bóng Mực hút dầu > đèn bị hút cạn thì tắt và bóng quay về wander
+ ✓ tests/fuel.test.ts > DR2-DR5 Bóng Mực hút dầu > drain → chase khi Mây vào trong 6 m
+ ✓ tests/fuel.test.ts > DR2-DR5 Bóng Mực hút dầu > drain → wander khi fuel ≥ 30, hoặc đèn tắt, hoặc cách đèn > 2 m
+ ✓ tests/fuel.test.ts > DR2-DR5 Bóng Mực hút dầu > hết choáng thì về wander
+ ✓ tests/fuel.test.ts > DR2-DR5 Bóng Mực hút dầu > Tỏa Sáng trúng bóng đang drain: choáng và tổng +15 điểm (bóng thường +5)
+ ✓ tests/fuel.test.ts > DR6 châm dầu lên ≥ 30 thì đẩy bóng ra khỏi vùng an toàn > bóng trong vùng 6 m bị đẩy ra mép trong ≤30 tick và không gây sát thương
+ ✓ tests/rules.test.ts > S5 đom đóm: nhặt và sức chứa > nhặt đúng ở biên XZ <= 1.0, không nhặt khi 1.01
+ ✓ tests/rules.test.ts > S5 đom đóm: nhặt và sức chứa > chênh cao chân Mây và mặt đất nơi đặt đom đóm phải <= 1.5
+ ✓ tests/rules.test.ts > S5 đom đóm: nhặt và sức chứa > sức chứa 10: đầy thì không nhặt thêm
+ ✓ tests/rules.test.ts > S5 đom đóm: nhặt và sức chứa > nhặt không cộng điểm; điểm chỉ tính khi nạp
+ ✓ tests/rules.test.ts > S7 đèn lồng > nạp đúng ở biên interact 2.0 m; ngoài 2.0 thì không
+ ✓ tests/rules.test.ts > S7 đèn lồng > cần 10 đom đóm, nạp nhiều lần được, đèn nhớ tiến độ; điểm +10 mỗi đom đóm nạp, +100 mỗi đèn
+ ✓ tests/rules.test.ts > S7 đèn lồng > nạp dở rồi nạp tiếp lần sau mới sáng
+ ✓ tests/rules.test.ts > S7 đèn lồng > chọn đèn gần nhất (đèn sáng chưa đầy dầu cũng nhận được), bằng nhau thì id nhỏ hơn
+ ✓ tests/rules.test.ts > S7 đèn lồng > giữ nút interact chỉ nạp một lần
+ ✓ tests/rules.test.ts > WN/SC thắng, thua và điểm (Ticket-03, thay S13 của Phase 2) > thắp đủ đèn KHÔNG còn kết thúc Đêm (luật cũ: thắng ngay)
+ ✓ tests/rules.test.ts > WN/SC thắng, thua và điểm (Ticket-03, thay S13 của Phase 2) > hết giờ: còn sống và đèn sáng ≥ ceil(0.6 × 5) = 3 thì thắng (dawn_survived), điểm bình minh = Σ(50 + floor(fuel)) + 50 × lửa
+ ✓ tests/rules.test.ts > WN/SC thắng, thua và điểm (Ticket-03, thay S13 của Phase 2) > không còn thưởng thời gian
+ ✓ tests/rules.test.ts > WN/SC thắng, thua và điểm (Ticket-03, thay S13 của Phase 2) > hết giờ mà số đèn sáng dưới ngưỡng thì thua (dawn), không có điểm bình minh
+ ✓ tests/rules.test.ts > WN/SC thắng, thua và điểm (Ticket-03, thay S13 của Phase 2) > ngưỡng theo Đêm: cần 3/5, 4/6, 5/7 đèn sáng
+ ✓ tests/rules.test.ts > WN/SC thắng, thua và điểm (Ticket-03, thay S13 của Phase 2) > hết Ngọn Lửa luôn thua (no_flames), kể cả ở tick bình minh dù đủ đèn sáng
+ ✓ tests/rules.test.ts > WN/SC thắng, thua và điểm (Ticket-03, thay S13 của Phase 2) > hết Ngọn Lửa vì bị bóng đánh lần cuối thì thua (no_flames)
+ ✓ tests/rules.test.ts > WN/SC thắng, thua và điểm (Ticket-03, thay S13 của Phase 2) > thứ tự xét: hết lửa thắng mọi thứ, kể cả khi đủ đèn sáng ở tick bình minh
+ ✓ tests/rules.test.ts > WN/SC thắng, thua và điểm (Ticket-03, thay S13 của Phase 2) > điểm: +5 mỗi đom đóm nạp, +100 thắp lần đầu, +40 thắp lại; thắp lại chỉ cần 5 đom đóm
+ ✓ tests/rules.test.ts > S11 bị đánh > -1 lửa, rơi floor(mang/2) đom đóm ra vành 1.5-2.5 m (TTL 480), bất tử 90 tick
+ ✓ tests/rules.test.ts > S11 bị đánh > đom đóm rơi tồn tại đúng 480 tick
+ ✓ tests/rules.test.ts > S11 bị đánh > đom đóm rơi nhặt lại được từ tick sau
+ ✓ tests/rules.test.ts > S11 bị đánh > bất tử 90 tick: bóng chạm lúc bất tử không làm gì; hết bất tử thì bị đánh tiếp
+ ✓ tests/rules.test.ts > S11 bị đánh > tối đa 1 lần mất Ngọn Lửa mỗi tick dù nhiều bóng chạm
+ ✓ tests/rules.test.ts > S11 bị đánh > Mây còn bất tử (invuln_ticks trong scenario) thì không bị đánh
+ ✓ tests/rules.test.ts > S8 vùng an toàn > đèn đã sáng chặn Bóng Mực ở mép 6 m
+ ✓ tests/rules.test.ts > S8 vùng an toàn > đèn chưa sáng không có vùng an toàn
+ ✓ tests/rules.test.ts > S8 vùng an toàn > bóng đang trong vùng lúc đèn vừa thắp bị đẩy ra ≤30 tick và không gây sát thương
+ ✓ tests/maps.test.ts > M1 Đêm 1: Đảo Bến > 5 đèn đúng tọa độ chuẩn, xuất phát (0,0,0)
+ ✓ tests/maps.test.ts > M1 Đêm 1: Đảo Bến > 24 điểm đom đóm: 8 ở r=12 và 16 ở r=33; 12 điểm sinh bóng ở r=37 (15°, 45°, ...)
+ ✓ tests/maps.test.ts > M1 Đêm 1: Đảo Bến > đảo bán kính 40; ngoài 40 m là vực
+ ✓ tests/maps.test.ts > M2 Đêm 2: Đảo Cau > 6 đèn, 24 điểm đom đóm (12/đảo), 16 điểm sinh bóng r=26, bóng 7 s tối đa 8, 270 s
+ ✓ tests/maps.test.ts > M2 Đêm 2: Đảo Cau > đi từ đảo A sang đảo B qua cầu tre mà không rơi
+ ✓ tests/maps.test.ts > M2 Đêm 2: Đảo Cau > cầu không có lan can: bước ra khỏi cầu thì rơi
+ ✓ tests/maps.test.ts > M2 Đêm 2: Đảo Cau > bục nhảy (20,0,18) phóng sang đảo B, đáp trong đảo, không rơi
+ ✓ tests/maps.test.ts > M2 Đêm 2: Đảo Cau > bục (50,0,-18) phóng ngược về đảo A
+ ✓ tests/maps.test.ts > M2 Đêm 2: Đảo Cau > vận tốc phóng giữ nguyên tới khi chạm đất: phím di chuyển không ghi đè
+ ✓ tests/maps.test.ts > M3 Đêm 3: Đảo Chuông > 7 đèn, 30 điểm đom đóm (18 + 8 + 4), 16 điểm sinh bóng r=43, bóng 6 s tối đa 10, 4.5 m/s, 300 s
+ ✓ tests/maps.test.ts > M3 Đêm 3: Đảo Chuông > 3 tầng: tầng 0 (Y=0), tầng 1 (Y=3, r 12-24, z>0), tầng 2 (Y=6, r<=8)
+ ✓ tests/maps.test.ts > M3 Đêm 3: Đảo Chuông > điểm đom đóm nằm đúng độ cao tầng
+ ✓ tests/maps.test.ts > M3 Đêm 3: Đảo Chuông > vách đứng chặn: không đi thẳng lên tầng 2 được
+ ✓ tests/maps.test.ts > M3 Đêm 3: Đảo Chuông > dốc ở 30° rộng 3 m dẫn lên tầng 1
+ ✓ tests/maps.test.ts > M3 Đêm 3: Đảo Chuông > bước ra khỏi mép tầng 1 thì rơi xuống tầng dưới (không phải rơi khỏi đảo)
+ ✓ tests/maps.test.ts > M3 Đêm 3: Đảo Chuông > bục (0,3,13) phóng lên tầng 2 (vận tốc Y 12, ngang 8 m/s hướng -Z)
+ ✓ tests/maps.test.ts > M3 Đêm 3: Đảo Chuông > tháp chuông r=2 ở tâm tầng 2 chặn đường
+ ✓ tests/maps.test.ts > M3 Đêm 3: Đảo Chuông > xuất phát ở tầng 0, ngoài trụ tầng 2
+ ✓ tests/maps.test.ts > --night và số chuẩn theo Đêm > snapshot có trường night; thời gian 240/270/300
+ ✓ tests/tornado.test.ts > lốc xoáy: tắt mặc định, không phá contract > mặc định không có lốc xoáy
+ ✓ tests/tornado.test.ts > lốc xoáy: tắt mặc định, không phá contract > headless không bao giờ có sự kiện lốc xoáy, kể cả chạy rất lâu
+ ✓ tests/tornado.test.ts > lốc xoáy: tắt mặc định, không phá contract > bật lốc xoáy không làm đổi dòng ngẫu nhiên chính (cùng bố cục đom đóm)
+ ✓ tests/tornado.test.ts > lốc xoáy: chu trình và cảnh báo > chờ ngẫu nhiên trong khoảng cho phép rồi cảnh báo đúng warn_s trước khi quét
+ ✓ tests/tornado.test.ts > lốc xoáy: chu trình và cảnh báo > thời gian chờ khác nhau giữa các seed và giữa các lần quét
+ ✓ tests/tornado.test.ts > lốc xoáy: chu trình và cảnh báo > phát sự kiện cảnh báo kèm đường quét, rồi sự kiện càn quét
+ ✓ tests/tornado.test.ts > lốc xoáy: chu trình và cảnh báo > tất định theo seed
+ ✓ tests/tornado.test.ts > lốc xoáy: chu trình và cảnh báo > sau khi quét xong thì quay về chờ và quét lại
+ ✓ tests/tornado.test.ts > lốc xoáy: sát thương > Bóng Mực bị lốc xoáy quét trúng thì chết
+ ✓ tests/tornado.test.ts > lốc xoáy: sát thương > Bóng Mực ngoài dải quét thì không sao
+ ✓ tests/tornado.test.ts > lốc xoáy: sát thương > Mây bị lốc xoáy quét trúng thì mất 1 ngọn lửa và rơi đom đóm (như bị Mực đen bắt)
+ ✓ tests/tornado.test.ts > lốc xoáy: sát thương > Mây đứng ngoài dải thì không sao
+ ✓ tests/tornado.test.ts > lốc xoáy: sát thương > Mây đang bất tử thì không mất lửa (lướt KHÔNG còn bất tử từ Phase 2)
+ ✓ tests/tornado.test.ts > lốc xoáy: sát thương > nằm trên đường quét trong lúc cảnh báo thì chưa bị gì
+ ✓ tests/entities.test.ts > F1 Gió Lạc > sinh tại tick 1200, 2400, ... (Đêm 2 và 3), tối đa 2 con, id D1, D2; Đêm 1 không có
+ ✓ tests/entities.test.ts > F1 Gió Lạc > idle → chase khi mang ≥5 đom đóm và cách ≤15 m; thiếu điều kiện thì ở idle
+ ✓ tests/entities.test.ts > F1 Gió Lạc > chase bay 7 m/s; chạm ≤1.2 m cướp min(3, mang) rồi flee, không mất Ngọn Lửa
+ ✓ tests/entities.test.ts > F1 Gió Lạc > mỗi con chỉ cướp 1 lần; flee 240 tick rồi biến mất cùng đồ đã cướp
+ ✓ tests/entities.test.ts > F1 Gió Lạc > Bất tử của Mây không ngăn bị cướp
+ ✓ tests/entities.test.ts > F1 Gió Lạc > vùng an toàn của đèn không chặn Gió Lạc
+ ✓ tests/entities.test.ts > F1 Gió Lạc > Tỏa Sáng trúng Gió Lạc đang chase → flee, không cướp
+ ✓ tests/entities.test.ts > F1 Gió Lạc > Tỏa Sáng trúng lúc flee có đồ → thả toàn bộ thành đom đóm rơi, biến mất sau 120 tick
+ ✓ tests/entities.test.ts > F1 Gió Lạc > điểm Tỏa Sáng chỉ tính cho Bóng Mực, không tính Gió Lạc
+ ✓ tests/entities.test.ts > F2 Bùa Gió > nhặt: event, hiệu lực 600 tick (10 s), bùa biến mất rồi xuất hiện lại sau 2700 tick
+ ✓ tests/entities.test.ts > F2 Bùa Gió > nhặt lại (làm mới) khi còn hiệu lực
+ ✓ tests/entities.test.ts > F2 Bùa Gió > hết thời gian hồi thì bùa sẵn sàng trở lại
+ ✓ tests/entities.test.ts > F2 Bùa Gió > chạy 7.2 m/s khi có bùa
+ ✓ tests/entities.test.ts > F2 Bùa Gió > Lướt không hồi chiêu nhưng vẫn cần nhấn lại; nhấn khi đang lướt bị bỏ qua; vẫn 14 m/s trong 12 tick
+ ✓ tests/entities.test.ts > F2 Bùa Gió > vị trí theo Đêm: Đêm 1 không có; Đêm 2 (35,0,0); Đêm 3 (30,0,25) và (-30,0,25)
+ ✓ tests/entities.test.ts > F3 Gió mạnh (Đêm 3) > báo trước 2 s (tick 1680-1799), kéo dài 5 s (tick 1800-2099), hướng cố định trong cơn gió
+ ✓ tests/entities.test.ts > F3 Gió mạnh (Đêm 3) > đẩy Mây 2 m/s theo hướng gió: 10 m sau 5 s
+ ✓ tests/entities.test.ts > F3 Gió mạnh (Đêm 3) > wind_enabled=false tắt gió; mặc định Đêm 3 bật, Đêm 1 và 2 tắt
+ ✓ tests/entities.test.ts > F5 Pause > phát event paused/resumed; snapshot state paused
+ ✓ tests/entities.test.ts > F5 Pause > khi tạm dừng tick vẫn tăng nhưng sim_tick, thời gian, vị trí đứng yên
+ ✓ tests/entities.test.ts > F5 Pause > --ticks đếm cả tick tạm dừng; sau khi tiếp tục logic chạy bình thường
+ ✓ tests/entities.test.ts > F5 Pause > lịch sinh dựa trên sim_tick: tạm dừng 100 tick thì sinh bóng chậm 100 tick
+ ✓ tests/combat.test.ts > S9 Tỏa Sáng > tốn 3 đom đóm; làm choáng 120 tick; đẩy lùi 4 m trải trong 15 tick; +5 điểm mỗi bóng
+ ✓ tests/combat.test.ts > S9 Tỏa Sáng > choáng đúng 120 tick rồi lại đuổi
+ ✓ tests/combat.test.ts > S9 Tỏa Sáng > bán kính 5 m theo khoảng cách 3D từ tâm = chân + 0.8
+ ✓ tests/combat.test.ts > S9 Tỏa Sáng > không đủ 3 đom đóm thì không kích hoạt
+ ✓ tests/combat.test.ts > S9 Tỏa Sáng > hồi chiêu 3 s (180 tick)
+ ✓ tests/combat.test.ts > S9 Tỏa Sáng > trúng lại thì làm mới choáng và đẩy lùi, và vẫn +5 dù đang choáng
+ ✓ tests/combat.test.ts > S9 Tỏa Sáng > trùng vị trí thì đẩy theo +X; không chết
+ ✓ tests/combat.test.ts > S9 Tỏa Sáng > dừng đẩy khi gặp vật cản (mép đảo)
+ ✓ tests/combat.test.ts > S10 Bóng Mực > chạy 4.0 m/s (Đêm 3: 4.5 m/s)
+ ✓ tests/combat.test.ts > S10 Bóng Mực > phát hiện 12 m (wander → chase) và bỏ đuổi 18 m (chase → wander)
+ ✓ tests/combat.test.ts > S10 Bóng Mực > trạng thái dùng đúng tên v1.1
+ ✓ tests/combat.test.ts > S10 Bóng Mực > spawning/stunned không gây sát thương
+ ✓ tests/combat.test.ts > S10 Bóng Mực > hit làm bóng recoil lùi 2 m trong 60 tick rồi đuổi lại
+ ✓ tests/combat.test.ts > S10 Bóng Mực > lịch sinh Đêm 1: 2 con ở tick 300, rồi 1 con mỗi 480 tick; id S1, S2, ...
+ ✓ tests/combat.test.ts > S10 Bóng Mực > spawning kéo dài 30 tick rồi hết
+ ✓ tests/combat.test.ts > S10 Bóng Mực > điểm sinh nằm trong 12 điểm r=37 và cách Mây ≥15 m
+ ✓ tests/combat.test.ts > S10 Bóng Mực > trần số bóng: Đêm 1 tối đa 6
+ ✓ tests/combat.test.ts > S10 Bóng Mực > Đêm 2 sinh mỗi 420 tick, tối đa 8
+ ✓ tests/combat.test.ts > S10 Bóng Mực > random_shades=false thì không sinh
+ ✓ tests/combat.test.ts > S6 đom đóm sinh theo lịch > 20 đom đóm lúc đầu tại 20 điểm khác nhau, đúng điểm sinh của bản đồ
+ ✓ tests/combat.test.ts > S6 đom đóm sinh theo lịch > tick 240, 480, ... sinh thêm 1 tại điểm trống; hết điểm trống (Đêm 1 có 24) thì bỏ lượt
+ ✓ tests/combat.test.ts > S6 đom đóm sinh theo lịch > Đêm 3 (30 điểm) tăng dần tới trần 30
+ ✓ tests/combat.test.ts > S6 đom đóm sinh theo lịch > random_motes=false thì không sinh
+ ✓ tests/physics.test.ts > S2 di chuyển: tăng tốc/dừng trong 6 tick > đạt 6.0 m/s đúng sau 6 tick (0.1 s) và đi được 0.35 m
+ ✓ tests/physics.test.ts > S2 di chuyển: tăng tốc/dừng trong 6 tick > giữ tốc độ chạy 6.0 m/s
+ ✓ tests/physics.test.ts > S2 di chuyển: tăng tốc/dừng trong 6 tick > dừng trong 6 tick
+ ✓ tests/physics.test.ts > S2 di chuyển: tăng tốc/dừng trong 6 tick > vector dài hơn 1 được chuẩn hóa; cam_yaw 90 độ quay hướng đi thành +X
+ ✓ tests/physics.test.ts > S2 di chuyển: tăng tốc/dừng trong 6 tick > trường vắng mặt giữ giá trị cũ
+ ✓ tests/physics.test.ts > S3 nhảy > nhảy với vận tốc 7.0 và g = -20: đỉnh ≈ 1.167 m, rồi chạm đất
+ ✓ tests/physics.test.ts > S3 nhảy > chỉ nhảy khi chạm đất: nhấn lại trên không không nhảy thêm
+ ✓ tests/physics.test.ts > S3 nhảy > giữ nút nhảy không nhảy lại khi đáp xuống (kích hoạt khi false sang true)
+ ✓ tests/physics.test.ts > S3 nhảy > điều khiển trên không đầy đủ: tăng tốc ngang như dưới đất
+ ✓ tests/physics.test.ts > S4 lướt > 14 m/s trong 12 tick theo hướng đang đi: 2.8 m, phát event dash
+ ✓ tests/physics.test.ts > S4 lướt > đứng yên thì lướt theo hướng đang quay mặt (mặc định +Z; sau khi quay thì theo hướng đó)
+ ✓ tests/physics.test.ts > S4 lướt > hồi chiêu 1.5 s tính từ lúc bắt đầu lướt
+ ✓ tests/physics.test.ts > S4 lướt > trên không giữ nguyên độ cao khi lướt
+ ✓ tests/physics.test.ts > S4 lướt > KHÔNG bất tử khi lướt: lướt xuyên qua Bóng Mực vẫn bị đánh
+ ✓ tests/physics.test.ts > S12 rơi khỏi đảo > rơi đúng 1 lần: -1 lửa, mất hết đom đóm, có trường lost
+ ✓ tests/physics.test.ts > S12 rơi khỏi đảo > chờ 60 tick rồi hồi sinh ở điểm xuất phát, vận tốc 0, bất tử 90 tick
+ ✓ tests/physics.test.ts > S12 rơi khỏi đảo > trong lúc chờ không nhặt và không bị chạm
+ ✓ tests/physics.test.ts > S12 rơi khỏi đảo > hết Ngọn Lửa khi rơi thì thua ngay, không hồi sinh
+ ✓ tests/physics.test.ts > S12 rơi khỏi đảo > fall_enabled = true trong contract
+ ✓ tests/scenarios.test.ts > scenario headless (docs/proof/scenarios) > có scenario cho mỗi tính năng mới
+ ✓ tests/scenarios.test.ts > scenario headless (docs/proof/scenarios) > charm_dash.json: F2: Bùa Gió: lướt không hồi chiêu, nhấn khi đang lướt bị bỏ qua
+ ✓ tests/scenarios.test.ts > scenario headless (docs/proof/scenarios) > charm_pickup.json: F2: nhặt Bùa Gió hiệu lực 600 tick, bùa biến mất 2700 tick
+ ✓ tests/scenarios.test.ts > scenario headless (docs/proof/scenarios) > dawn_lose.json: WN3: hết giờ mà chỉ 2/5 đèn sáng (dưới ngưỡng 3) → thua dawn, không có điểm bình minh
+ ✓ tests/scenarios.test.ts > scenario headless (docs/proof/scenarios) > dawn_win.json: WN2/SC3: hết giờ còn sống và ≥3/5 đèn sáng → thắng dawn_survived; điểm = 3×(50+99) + 3×50 = 597
+ ✓ tests/scenarios.test.ts > scenario headless (docs/proof/scenarios) > drifter_pulse_drop.json: F1: Tỏa Sáng trúng Gió Lạc đang flee có đồ → thả đồ thành đom đóm rơi
+ ✓ tests/scenarios.test.ts > scenario headless (docs/proof/scenarios) > drifter_steal.json: F1: Gió Lạc idle→chase khi mang ≥5 và ≤15 m, cướp min(3, mang) rồi flee, không mất Ngọn Lửa
+ ✓ tests/scenarios.test.ts > scenario headless (docs/proof/scenarios) > fall_respawn.json: S12: rơi khỏi đảo: -1 lửa, mất hết đom đóm, chờ 60 tick, hồi sinh bất tử 90 tick
+ ✓ tests/scenarios.test.ts > scenario headless (docs/proof/scenarios) > fuel_out.json: FU6: fuel ≤ 0 → đèn tắt ngay sau bước 2, lantern_out, deposited=0, ever_lit=true
+ ✓ tests/scenarios.test.ts > scenario headless (docs/proof/scenarios) > fuel_refuel.json: FU3: châm dầu: used = min(mang, ceil((100-fuel)/10)); fuel 40 + 5 đom đóm → 90; +25 điểm
+ ✓ tests/scenarios.test.ts > scenario headless (docs/proof/scenarios) > jump_pad_night2.json: M2: bục nhảy (20,0,18) phóng sang đảo B và đáp xuống không rơi
+ ✓ tests/scenarios.test.ts > scenario headless (docs/proof/scenarios) > jump_pad_night3.json: M3: bục (0,3,13) phóng lên tầng 2 (Y=6)
+ ✓ tests/scenarios.test.ts > scenario headless (docs/proof/scenarios) > light_and_win.json: WN/SC (Ticket-03): thắp đủ đèn không còn kết thúc Đêm; điểm = 10 đom đóm × 5 + 100 thắp lần đầu
+ ✓ tests/scenarios.test.ts > scenario headless (docs/proof/scenarios) > pause_resume.json: F5: pause: tick tăng nhưng sim_tick đứng yên; paused/resumed
+ ✓ tests/scenarios.test.ts > scenario headless (docs/proof/scenarios) > pulse_stun.json: S9: Tỏa Sáng làm choáng 120 tick, đẩy 4 m, +5 điểm
+ ✓ tests/scenarios.test.ts > scenario headless (docs/proof/scenarios) > relight.json: FU7: đèn từng sáng chỉ cần 5 đom đóm để thắp lại (+25 +40 điểm), sức chứa tăng lên 12
+ ✓ tests/scenarios.test.ts > scenario headless (docs/proof/scenarios) > shade_drain.json: DR2-DR5: bóng wander tới đèn yếu (fuel<30), sang drain, hút 5/s; fuel_drain mỗi 60 tick
+ ✓ tests/scenarios.test.ts > scenario headless (docs/proof/scenarios) > shade_schedule.json: S10: Đêm 1: 2 bóng ở tick 300, rồi 1 bóng mỗi 480 tick
+ ✓ tests/scenarios.test.ts > scenario headless (docs/proof/scenarios) > wind_gust.json: F3: Đêm 3: gió mạnh báo trước 2 s rồi thổi 5 s (tick 1800-2099)
+ ✓ tests/contract.test.ts > C1 game.contract.json v1.2 > version 1.2 và tuning khớp số chuẩn trong code
+ ✓ tests/contract.test.ts > C1 game.contract.json v1.2 > có các khóa mới của v1.1 và v1.2 (Ticket-03)
+ ✓ tests/contract.test.ts > C1 game.contract.json v1.2 > số chuẩn theo ticket (Phần 1)
+ ✓ tests/contract.test.ts > C2 snapshot v1.1 > có night, wind, player.{vel,grounded,invuln,dash_cd_s,pulse_cd_s,charm_s} và các mảng motes/drifters/charms
+ ✓ tests/contract.test.ts > C2 snapshot v1.1 > scenario v1.1 đặt được invuln/dash_cd/pulse_cd/charm ticks và trạng thái bóng
+ ✓ tests/contract.test.ts > C2 snapshot v1.1 > mảng drifters/charms trong scenario thay thế danh sách mặc định
+ ✓ tests/contract.test.ts > C2 snapshot v1.1 > snapshot đầu ở tick 0; dòng cuối là end; làm tròn 3 chữ số
+ ✓ tests/contract.test.ts > C3/C4 input, scenario, event > event night_start ở tick 0
+ ✓ tests/contract.test.ts > C3/C4 input, scenario, event > input dash và pause được chấp nhận; sai kiểu thì lỗi
+ ✓ tests/contract.test.ts > C3/C4 input, scenario, event > scenario sai định dạng thì lỗi (CLI thoát mã 2)
+ ✓ tests/contract.test.ts > C5 tất định và hiệu năng > Đêm 1: cùng seed/scenario/inputs cho output giống hệt (có pause)
+ ✓ tests/contract.test.ts > C5 tất định và hiệu năng > Đêm 1: seed khác cho kết quả khác
+ ✓ tests/contract.test.ts > C5 tất định và hiệu năng > Đêm 2: cùng seed/scenario/inputs cho output giống hệt (có pause)
+ ✓ tests/contract.test.ts > C5 tất định và hiệu năng > Đêm 2: seed khác cho kết quả khác
+ ✓ tests/contract.test.ts > C5 tất định và hiệu năng > Đêm 3: cùng seed/scenario/inputs cho output giống hệt (có pause)
+ ✓ tests/contract.test.ts > C5 tất định và hiệu năng > Đêm 3: seed khác cho kết quả khác
+ ✓ tests/contract.test.ts > C5 tất định và hiệu năng > một Đêm đầy đủ (tối đa 21.600 tick) chạy headless xong trong ≤ 30 giây 1039ms
+
+ Test Files  10 passed (10)
+      Tests  213 passed (213)
+   Start at  17:04:52
+   Duration  3.71s (transform 1.44s, setup 0ms, collect 3.00s, tests 3.78s, environment 5ms, prepare 2.17s)
+

@@ -1,0 +1,3 @@
+Đêm 1: 14400 tick trong 0.23 s (1450 dòng), kết thúc lost
+Đêm 2: 16200 tick trong 0.34 s (1632 dòng), kết thúc lost
+Đêm 3: 14652 tick trong 0.47 s (1579 dòng), kết thúc lost

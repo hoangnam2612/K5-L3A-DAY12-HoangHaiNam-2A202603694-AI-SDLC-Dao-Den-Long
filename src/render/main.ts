@@ -7,7 +7,7 @@ import { Flow, type Night } from "./flow";
 import { Hud } from "./hud";
 import { InputController } from "./input";
 import { makeCharm, makeDrifter, makePlayer, makeShade, type DrifterModel, type ShadeModel } from "./models";
-import { ambientIntensity, PALETTE as P } from "./palette";
+import { ambientIntensity, dangerColor, PALETTE as P, SHADE_EDGE_CB } from "./palette";
 import { buildNightScene, type NightScene } from "./scenes";
 import { Screens } from "./screens";
 import { loadSettings, saveSettings, type Settings } from "./settings";
@@ -44,6 +44,9 @@ addEventListener("resize", () => {
 
 // ---------- trạng thái ứng dụng ----------
 let settings: Settings = loadSettings();
+let colorblind = settings.colorblind;
+const applyColorblind = (on: boolean) => { colorblind = on; document.documentElement.classList.toggle("cb", on); };
+applyColorblind(colorblind);
 const flow = new Flow();
 const audio = new AudioEngine();
 audio.setVolume(settings.volume);
@@ -82,6 +85,14 @@ const haloMesh = new THREE.InstancedMesh(new THREE.SphereGeometry(0.55, 10, 10),
 moteMesh.frustumCulled = false;
 haloMesh.frustumCulled = false;
 scene.add(moteMesh, haloMesh);
+// Đường hút dầu từ đèn tới Bóng Mực đang ở trạng thái drain
+const drainGeo = new THREE.BufferGeometry();
+const drainPos = new Float32Array(10 * 2 * 3);
+drainGeo.setAttribute("position", new THREE.BufferAttribute(drainPos, 3));
+drainGeo.setDrawRange(0, 0);
+const drainLines = new THREE.LineSegments(drainGeo, new THREE.LineBasicMaterial({ color: P.shadeEdge }));
+drainLines.frustumCulled = false;
+scene.add(drainLines);
 const tmpM = new THREE.Matrix4();
 const tmpC = new THREE.Color();
 
@@ -164,7 +175,7 @@ const screens: Screens = new Screens(screensEl, flow, {
   toMenu: () => { flow.toMenu(); audio.stopMusic(); loadNight(1); showScreen(); },
   openSettings: () => { flow.openSettings(); showScreen(); },
   closeSettings: () => { flow.closeSettings(); showScreen(); },
-  setSettings: (s) => { settings = s; saveSettings(s); audio.setVolume(s.volume); input.sensitivity = s.sensitivity; },
+  setSettings: (s) => { settings = s; saveSettings(s); audio.setVolume(s.volume); input.sensitivity = s.sensitivity; applyColorblind(s.colorblind); },
 }, () => settings);
 
 function showScreen() {
@@ -199,6 +210,8 @@ function endNight(g: Game) {
     night: g.night, won: g.state === "won", score: g.score,
     lanternsLit: g.lanterns.filter((l) => l.lit).length, lanternsTotal: g.lanterns.length,
     flames: g.player.flames, timeLeft: Math.max(0, g.timeLeft),
+    needed: Math.ceil(T.win_ratio * g.lanterns.length - 1e-9),
+    reason: g.state === "won" ? "dawn_survived" : g.player.flames <= 0 ? "no_flames" : "dawn",
   });
   input.unlock();
   showScreen();
@@ -290,12 +303,26 @@ function updateVisuals(g: Game, n: NightScene, dt: number, t: number) {
   g.lanterns.forEach((l, i) => {
     const lm = n.lanterns[i]!;
     const mat = lm.paper.material as THREE.MeshStandardMaterial;
-    const fill = l.lit ? 1 : l.deposited / T.lantern_cost;
-    mat.color.set(l.lit ? P.lanternOn : P.lanternOff);
-    mat.emissive.set(l.lit ? P.lanternCore : fill > 0 ? P.lanternOn : 0x1a1a24);
-    mat.emissiveIntensity = l.lit ? 1.1 : 0.4 + fill * 0.9;
-    (lm.glow.material as THREE.MeshBasicMaterial).opacity = l.lit ? 0.3 : fill * 0.15;
-    n.zoneRings[i]!.visible = l.lit;
+    const fuel = l.fuel / W.tick_rate;
+    const low = l.lit && fuel < T.low_fuel_threshold;
+    const blinkOff = low && t % 1 >= 0.5; // đèn sắp hết dầu nhấp nháy chậm 1 Hz
+    const need = l.ever_lit ? T.relight_cost : T.lantern_cost;
+    const fill = l.lit ? 1 : l.deposited / need;
+    mat.color.set(l.lit && !blinkOff ? P.lanternOn : P.lanternOff);
+    mat.emissive.set(l.lit && !blinkOff ? P.lanternCore : !l.lit && fill > 0 ? P.lanternOn : 0x1a1a24);
+    mat.emissiveIntensity = l.lit ? (blinkOff ? 0.2 : 1.1) : 0.4 + fill * 0.9;
+    lm.paper.scale.set(1, l.lit ? 1.15 : 1.15 * 0.8, 1); // đèn tắt xẹp 20% (phân biệt không cần màu)
+    lm.tears.visible = !l.lit; // và có vết rách
+    (lm.glow.material as THREE.MeshBasicMaterial).opacity = l.lit ? (blinkOff ? 0.05 : 0.3) : fill * 0.15;
+    lm.bar.visible = l.lit && !blinkOff;
+    if (lm.bar.visible) {
+      lm.bar.lookAt(camera.position);
+      const ratio = Math.max(0, Math.min(1, fuel / T.fuel_max));
+      lm.fill.scale.x = Math.max(0.001, ratio);
+      lm.fill.position.x = -0.85 * (1 - ratio);
+      (lm.fill.material as THREE.MeshBasicMaterial).color.set(low ? dangerColor(colorblind) : P.lanternOn);
+    }
+    n.zoneRings[i]!.visible = l.lit && fuel >= T.low_fuel_threshold;
   });
   const ranked = g.lanterns
     .map((l) => ({ l, d: Math.hypot(l.pos[0] - p.pos[0], l.pos[2] - p.pos[2]) }))
@@ -332,12 +359,24 @@ function updateVisuals(g: Game, n: NightScene, dt: number, t: number) {
     sm.group.position.set(s.pos[0], s.pos[1] + Math.sin(t * 3 + s.pos[0]) * 0.12, s.pos[2]);
     sm.group.rotation.y = Math.atan2(p.pos[0] - s.pos[0], p.pos[2] - s.pos[2]);
     sm.group.scale.setScalar(grow);
+    const edgeCol = colorblind ? SHADE_EDGE_CB : P.shadeEdge; // chế độ mù màu: viền và mắt #00B3FF
     (sm.body.material as THREE.MeshStandardMaterial).color.set(stunned ? P.shadeStunned : P.shadeBody);
-    (sm.edge.material as THREE.MeshBasicMaterial).color.set(stunned ? P.shadeStunned : P.shadeEdge);
-    sm.eyes.forEach((e) => (e.material as THREE.MeshBasicMaterial).color.set(stunned ? P.shadeStunned : P.gold));
+    (sm.edge.material as THREE.MeshBasicMaterial).color.set(stunned ? P.shadeStunned : edgeCol);
+    sm.eyes.forEach((e) => (e.material as THREE.MeshBasicMaterial).color.set(stunned ? P.shadeStunned : edgeCol));
     sm.wisps.forEach((w, i) => (w.rotation.z = Math.sin(t * 4 + i * 1.3) * 0.25));
   }
   for (const [id, sm] of shadeModels) if (!alive.has(id)) { shadeLayer.remove(sm.group); shadeModels.delete(id); }
+  let drains = 0;
+  for (const s of g.shades) {
+    if (s.state !== "drain" || !s.target || drains >= 10) continue;
+    const l = g.lanterns.find((q) => q.id === s.target);
+    if (!l) continue;
+    drainPos.set([s.pos[0], s.pos[1], s.pos[2], l.pos[0], l.pos[1] + 3.5, l.pos[2]], drains * 6);
+    drains++;
+  }
+  drainGeo.setDrawRange(0, drains * 2);
+  (drainGeo.attributes.position as THREE.BufferAttribute).needsUpdate = true;
+  (drainLines.material as THREE.LineBasicMaterial).color.set(colorblind ? SHADE_EDGE_CB : P.shadeEdge);
 
   // Gió Lạc
   const dAlive = new Set<string>();

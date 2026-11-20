@@ -1,10 +1,10 @@
 export type Vec3 = [number, number, number];
 
 export type GameState = "playing" | "won" | "lost" | "paused";
-export type ShadeState = "spawning" | "wander" | "chase" | "recoil" | "stunned";
+export type ShadeState = "spawning" | "wander" | "chase" | "recoil" | "stunned" | "drain";
 export type DrifterState = "idle" | "chase" | "flee";
 
-export const SHADE_STATES: readonly ShadeState[] = ["spawning", "wander", "chase", "recoil", "stunned"];
+export const SHADE_STATES: readonly ShadeState[] = ["spawning", "wander", "chase", "recoil", "stunned", "drain"];
 export const DRIFTER_STATES: readonly DrifterState[] = ["idle", "chase", "flee"];
 
 export interface InputState {
@@ -33,16 +33,17 @@ export interface Scenario {
     dash_cd_ticks?: number;
     pulse_cd_ticks?: number;
     charm_ticks?: number;
+    successful_lights?: number;
   };
   random_motes?: boolean;
   random_shades?: boolean;
   random_drifters?: boolean;
   wind_enabled?: boolean;
   motes?: Vec3[];
-  shades?: { id?: string; pos: Vec3; state?: ShadeState; state_ticks_left?: number }[];
+  shades?: { id?: string; pos: Vec3; state?: ShadeState; state_ticks_left?: number; target_lantern_id?: string }[];
   drifters?: { id?: string; pos: Vec3; state?: DrifterState; stolen?: number }[];
   charms?: { id: string; pos?: Vec3; available?: boolean; respawn_ticks?: number }[];
-  lanterns?: { id: string; pos?: Vec3; deposited?: number; lit?: boolean }[];
+  lanterns?: { id: string; pos?: Vec3; deposited?: number; lit?: boolean; fuel?: number; ever_lit?: boolean }[];
   time_left_s?: number;
 }
 
@@ -61,6 +62,9 @@ export type EventName =
   | "night_start"
   | "paused"
   | "resumed"
+  | "refuel"
+  | "lantern_out"
+  | "fuel_drain"
   // Chỉ phát khi bật lốc xoáy (không bao giờ xảy ra trong headless).
   | "tornado_warning"
   | "tornado_sweep"

@@ -7,13 +7,14 @@ import { events, run, snaps } from "./helpers";
 
 const contract = JSON.parse(readFileSync("game.contract.json", "utf8"));
 
-describe("C1 game.contract.json v1.1", () => {
-  it("version 1.1 và tuning khớp số chuẩn trong code", () => {
-    expect(contract.contract_version).toBe("1.1");
+describe("C1 game.contract.json v1.2", () => {
+  it("version 1.2 và tuning khớp số chuẩn trong code", () => {
+    expect(contract.contract_version).toBe("1.2");
     expect(contract.tuning).toEqual(TUNING);
   });
-  it("có các khóa mới của v1.1", () => {
-    for (const k of ["dash_speed", "dash_duration_s", "dash_cooldown_s", "night2_duration_s", "night3_duration_s"]) {
+  it("có các khóa mới của v1.1 và v1.2 (Ticket-03)", () => {
+    for (const k of ["dash_speed", "dash_duration_s", "dash_cooldown_s", "night2_duration_s", "night3_duration_s",
+      "fuel_max", "fuel_decay_per_s", "fuel_per_mote", "relight_cost", "win_ratio", "drain_per_s", "low_fuel_threshold", "capacity_max"]) {
       expect(contract.tuning).toHaveProperty(k);
     }
   });
@@ -23,8 +24,9 @@ describe("C1 game.contract.json v1.1", () => {
     expect([t.pulse_cost, t.pulse_radius, t.pulse_cooldown_s, t.pulse_stun_s, t.pulse_push_m]).toEqual([3, 5, 3, 2, 4]);
     expect([t.safe_radius, t.shade_speed, t.shade_hit_radius, t.flames, t.invuln_s, t.hit_drop_ratio]).toEqual([6, 4, 1, 3, 1.5, 0.5]);
     expect([t.dash_speed, t.dash_duration_s, t.dash_cooldown_s]).toEqual([14, 0.2, 1.5]);
-    expect([t.night1_duration_s, t.night2_duration_s, t.night3_duration_s]).toEqual([300, 330, 360]);
-    expect(t.score).toEqual({ per_mote: 10, per_lantern: 100, per_stun: 5, per_second_left: 2, per_flame_left: 50 });
+    expect([t.night1_duration_s, t.night2_duration_s, t.night3_duration_s]).toEqual([240, 270, 300]); // Ticket-03
+    expect([t.fuel_max, t.fuel_decay_per_s, t.fuel_per_mote, t.relight_cost, t.win_ratio, t.drain_per_s, t.low_fuel_threshold, t.capacity_max]).toEqual([100, 1, 10, 5, 0.6, 5, 30, 20]);
+    expect(t.score).toMatchObject({ per_mote: 5, per_lantern: 100, per_stun: 5, per_second_left: 0, per_flame_left: 50, per_relight: 40, per_stun_drain_bonus: 10, per_lantern_dawn: 50 }); // Ticket-03: điểm mới
   });
 });
 
@@ -34,7 +36,7 @@ describe("C2 snapshot v1.1", () => {
     expect(s).toMatchObject({ type: "snapshot", tick: 0, sim_tick: 0, night: 2, state: "playing" });
     expect(s.wind).toEqual({ active: false, dir_deg: 0, warning: false });
     expect(Object.keys(s.player).sort()).toEqual(
-      ["carried", "charm_s", "dash_cd_s", "flames", "grounded", "invuln", "invuln_ticks", "pos", "pulse_cd_s", "vel"].sort(),
+      ["capacity", "carried", "charm_s", "dash_cd_s", "flames", "grounded", "invuln", "invuln_ticks", "pos", "pulse_cd_s", "vel"].sort(),
     );
     expect(s.motes[0]).toEqual({ id: "M1", pos: [5, 0, 5], kind: "random", ttl_s: null });
     expect(s.drifters[0]).toEqual({ id: "D1", pos: [3, 1.5, 3], state: "idle", stolen: 0 });

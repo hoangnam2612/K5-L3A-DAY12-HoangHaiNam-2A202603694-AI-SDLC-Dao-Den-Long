@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import type { Game } from "../sim/game";
 import { TUNING as T, WORLD as W } from "../sim/tuning";
-import { arrowFor, cooldownRatio, formatTime, isLowTime, lanternPrompt, moteCells } from "./hudlogic";
+import { arrowFor, cooldownRatio, formatTime, isLowTime, lanternPrompt, moteCells, needLit, refuelPrompt } from "./hudlogic";
 
 const FLAME = `<svg viewBox="0 0 24 32" width="26" height="34"><path d="M12 1c1 6 8 9 8 18a8 8 0 0 1-16 0c0-4 2-6 4-8 0 3 1 4 2 4-1-6 1-10 2-14z" fill="currentColor"/></svg>`;
 
@@ -23,6 +23,8 @@ export class Hud {
   private score: HTMLElement;
   private cells: HTMLElement[] = [];
   private prompt: HTMLElement;
+  private carry: HTMLElement;
+  private objective: HTMLElement;
   private arrow: HTMLElement;
   private dash: HTMLElement;
   private pulse: HTMLElement;
@@ -42,9 +44,11 @@ export class Hud {
     const tr = el("div", "hud-tr", "", this.root);
     this.lanterns = el("div", "hud-lanterns", "", tr);
     this.score = el("div", "hud-score", "", tr);
+    this.objective = el("div", "hud-objective", "", tr);
     this.prompt = el("div", "hud-prompt", "", this.root);
     const bar = el("div", "hud-motes", "", this.root);
-    for (let i = 0; i < T.carry_capacity; i++) this.cells.push(el("div", `hud-cell-${i}`, "cell", bar));
+    for (let i = 0; i < T.capacity_max; i++) this.cells.push(el("div", `hud-cell-${i}`, "cell", bar));
+    this.carry = el("div", "hud-carry", "", this.root);
     const br = el("div", "hud-br", "", this.root);
     this.dash = this.cd(br, "F", "Lướt");
     this.pulse = this.cd(br, "Q", "Tỏa Sáng");
@@ -79,24 +83,29 @@ export class Hud {
     const lit = game.lanterns.filter((l) => l.lit).length;
     this.setText("lanterns", this.lanterns, `Đèn ${lit}/${game.lanterns.length}`);
     this.setText("score", this.score, `${game.score}`);
-    moteCells(p.carried, T.carry_capacity).forEach((on, i) => {
+    const cap = game.capacity; // sức chứa tăng dần: 10 + 2 × số lần thắp thành công, tối đa 20
+    moteCells(p.carried, T.capacity_max).forEach((on, i) => {
       const c = this.cells[i]!;
       if (c.classList.contains("on") !== on) c.classList.toggle("on", on);
+      const hide = i >= cap;
+      if (c.hidden !== hide) c.hidden = hide;
     });
+    this.setText("carry", this.carry, `${p.carried}/${cap}`);
+    this.setText("objective", this.objective, `Giữ ≥ ${needLit(game.lanterns.length)} đèn sáng tới bình minh`);
     this.cooldown(this.dash, "dash", p.dash_cd, W.dash_cd_ticks, p.charm > 0);
     this.cooldown(this.pulse, "pulse", p.pulse_cd, W.pulse_cd_ticks, false);
     this.setText("charm", this.charm, p.charm > 0 ? `Bùa Gió ${Math.ceil(p.charm / W.tick_rate)}s` : "");
 
     // Nhắc nạp đèn khi đứng gần một đèn chưa sáng
     const near = game.lanterns
-      .filter((l) => !l.lit && Math.hypot(l.pos[0] - p.pos[0], l.pos[2] - p.pos[2]) <= T.interact_radius)
+      .filter((l) => (!l.lit || l.fuel < T.fuel_max * W.tick_rate) && Math.hypot(l.pos[0] - p.pos[0], l.pos[2] - p.pos[2]) <= T.interact_radius)
       .sort((a, b) => Math.hypot(a.pos[0] - p.pos[0], a.pos[2] - p.pos[2]) - Math.hypot(b.pos[0] - p.pos[0], b.pos[2] - p.pos[2]))[0];
-    this.setText("prompt", this.prompt, near ? lanternPrompt(near.deposited, T.lantern_cost) : "");
+    this.setText("prompt", this.prompt, near ? (near.lit ? refuelPrompt(near.fuel / W.tick_rate, T.fuel_max) : lanternPrompt(near.deposited, near.ever_lit ? T.relight_cost : T.lantern_cost)) : "");
     this.prompt.hidden = !near;
 
     // Mũi tên chỉ tới đèn chưa sáng gần nhất khi nó nằm ngoài màn hình
-    const target = game.lanterns
-      .filter((l) => !l.lit)
+    const unlit = game.lanterns.filter((l) => !l.lit);
+    const target = (unlit.length ? unlit : game.lanterns.filter((l) => l.fuel < T.low_fuel_threshold * W.tick_rate))
       .sort((a, b) => Math.hypot(a.pos[0] - p.pos[0], a.pos[2] - p.pos[2]) - Math.hypot(b.pos[0] - p.pos[0], b.pos[2] - p.pos[2]))[0];
     if (!target) { this.arrow.hidden = true; }
     else {

@@ -3,7 +3,7 @@ import type { GameEvent } from "../sim/types";
 
 export type Sfx =
   | "pickup" | "deposit" | "light" | "pulse" | "hit" | "jump" | "dash" | "win" | "lose"
-  | "spawn" | "countdown" | "wind" | "charm" | "steal" | "fall" | "click";
+  | "spawn" | "countdown" | "wind" | "charm" | "steal" | "fall" | "click" | "out" | "drain";
 
 /** Bảng: sự kiện của sim → hiệu ứng âm thanh. */
 export function soundsForEvents(events: readonly Pick<GameEvent, "name" | "data">[]): Sfx[] {
@@ -12,6 +12,9 @@ export function soundsForEvents(events: readonly Pick<GameEvent, "name" | "data"
     switch (e.name) {
       case "mote_picked": out.push("pickup"); break;
       case "deposit": out.push("deposit"); break;
+      case "refuel": out.push("deposit"); break; // châm dầu
+      case "lantern_out": out.push("out"); break; // đèn tắt
+      case "fuel_drain": out.push("drain"); break; // bóng đang hút dầu
       case "lantern_lit": out.push("light"); break;
       case "pulse": out.push("pulse"); break;
       case "player_hit": out.push(e.data.by === "fall" ? "fall" : "hit"); break;
@@ -156,6 +159,8 @@ export class AudioEngine {
       case "charm": [660, 880, 1320].forEach((f, i) => this.tone(f, 0.25, "triangle", 0.2, i * 0.07)); break;
       case "steal": this.tone(1200, 0.3, "sawtooth", 0.14, 0, 400); break;
       case "click": this.tone(700, 0.05, "square", 0.08); break;
+      case "out": this.tone(520, 0.5, "sine", 0.25, 0, 130); this.noise(0.3, 0.1, 200, 1500); break;
+      case "drain": this.tone(110, 0.25, "sawtooth", 0.1, 0, 70); break;
     }
   }
 }

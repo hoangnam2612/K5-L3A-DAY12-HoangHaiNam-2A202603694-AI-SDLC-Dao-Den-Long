@@ -25,10 +25,17 @@
       #hud-tr { position: absolute; top: 14px; right: 20px; text-align: right; }
       #hud-lanterns { font-size: 18px; color: var(--lantern); font-weight: 600; }
       #hud-score { font: 700 30px/1.1 ui-monospace, Consolas, monospace; color: var(--gold); }
-      #hud-prompt { position: absolute; bottom: 92px; left: 50%; transform: translateX(-50%); padding: 7px 18px; border-radius: 999px; background: #0e1430cc; border: 1px solid var(--gold); color: var(--core); font-weight: 600; }
+      :root.cb { --danger: #ffffff; }
+      :root.cb #hud-timer.low::before { content: "⚠ "; }
+      #hud-objective { font-size: 12px; opacity: .85; margin-top: 2px; }
+      #hud-carry { position: absolute; bottom: 54px; left: 50%; transform: translateX(-50%); font: 700 15px ui-monospace, Consolas, monospace; color: var(--core); text-shadow: 0 0 6px #000a; }
+      label.check { align-items: center; }
+      label.check input { width: 22px; height: 22px; accent-color: var(--lantern); }
+      #hud-prompt { position: absolute; bottom: 84px; left: 50%; transform: translateX(-50%); padding: 7px 18px; border-radius: 999px; background: #0e1430cc; border: 1px solid var(--gold); color: var(--core); font-weight: 600; }
       #hud-prompt[hidden] { display: none; }
-      #hud-motes { position: absolute; bottom: 26px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; }
-      .cell { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--gold); background: #0e143099; }
+      #hud-motes { position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%); display: flex; gap: 4px; }
+      .cell[hidden] { display: none; }
+      .cell { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--gold); background: #0e143099; }
       .cell.on { background: radial-gradient(circle, var(--mote) 30%, var(--halo) 100%); box-shadow: 0 0 10px var(--halo); }
       #hud-br { position: absolute; bottom: 22px; right: 22px; display: flex; gap: 14px; align-items: flex-end; }
       #hud-charm { position: absolute; right: 0; bottom: 92px; width: 160px; text-align: right; color: var(--gold); font-weight: 600; }

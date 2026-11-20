@@ -34,3 +34,13 @@ export function arrowFor(ndcX: number, ndcY: number, ndcZ: number): { visible: b
 
 /** Tỉ lệ còn lại của hồi chiêu (1 = vừa dùng, 0 = sẵn sàng). */
 export const cooldownRatio = (leftTicks: number, totalTicks: number): number => (totalTicks > 0 ? Math.min(1, Math.max(0, leftTicks / totalTicks)) : 0);
+
+/** Số đèn sáng tối thiểu ở bình minh để thắng: ceil(0.6 × tổng đèn) (3/5, 4/6, 5/7). */
+export const needLit = (total: number, ratio = 0.6): number => Math.ceil(ratio * total - 1e-9);
+
+/** Nhắc châm dầu cho đèn đang sáng. */
+export const refuelPrompt = (fuel: number, max = 100): string => `E — Châm dầu (${Math.floor(fuel)}/${max})`;
+
+/** Đèn và thanh dầu nhấp nháy chậm 1 Hz khi fuel < 30. */
+export const isLowFuel = (fuel: number, threshold = 30): boolean => fuel < threshold;
+export const blinkOn = (tSeconds: number): boolean => tSeconds % 1 < 0.5;

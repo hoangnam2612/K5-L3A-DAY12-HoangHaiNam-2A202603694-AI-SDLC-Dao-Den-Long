@@ -36,7 +36,7 @@ export function makePlayer(): THREE.Group {
   return g;
 }
 
-export interface LanternModel { group: THREE.Group; paper: THREE.Mesh; glow: THREE.Mesh }
+export interface LanternModel { group: THREE.Group; paper: THREE.Mesh; glow: THREE.Mesh; bar: THREE.Group; fill: THREE.Mesh; tears: THREE.Group }
 /** Đèn Lồng Lớn: cột gỗ, lồng đèn giấy, mái. Gốc ở chân cột. */
 export function makeLantern(): LanternModel {
   const g = new THREE.Group();
@@ -56,8 +56,24 @@ export function makeLantern(): LanternModel {
   capBottom.position.y = 2.45;
   const glow = new THREE.Mesh(new THREE.SphereGeometry(1.5, 16, 16), basic(P.lanternOn, { transparent: true, opacity: 0, depthWrite: false }));
   glow.position.y = 3.5;
-  g.add(post, base, paper, ribs, capTop, capBottom, glow);
-  return { group: g, paper, glow };
+  // Thanh dầu phía trên đèn (luôn quay về camera) và vết rách khi đèn tắt (phân biệt không cần màu)
+  const bar = new THREE.Group();
+  bar.position.y = 5.9;
+  const bg = new THREE.Mesh(new THREE.PlaneGeometry(1.8, 0.28), basic(P.sky, { transparent: true, opacity: 0.75, side: THREE.DoubleSide, depthWrite: false }));
+  const fill = new THREE.Mesh(new THREE.PlaneGeometry(1.7, 0.18), basic(P.lanternOn, { side: THREE.DoubleSide }));
+  fill.position.z = 0.01;
+  bar.add(bg, fill);
+  bar.visible = false;
+  const tears = new THREE.Group();
+  for (let i = 0; i < 3; i++) {
+    const a = i * 2.1;
+    const t = new THREE.Mesh(new THREE.PlaneGeometry(0.12, 0.6), basic(0x14101c, { side: THREE.DoubleSide }));
+    t.position.set(Math.sin(a) * 0.9, 3.3 + i * 0.2, Math.cos(a) * 0.9);
+    t.rotation.set(0.2, a, 0.35);
+    tears.add(t);
+  }
+  g.add(post, base, paper, ribs, capTop, capBottom, glow, bar, tears);
+  return { group: g, paper, glow, bar, fill, tears };
 }
 
 export interface ShadeModel { group: THREE.Group; body: THREE.Mesh; edge: THREE.Mesh; eyes: THREE.Mesh[]; wisps: THREE.Mesh[] }
@@ -82,7 +98,7 @@ export function makeShade(): ShadeModel {
   const eyes: THREE.Mesh[] = [];
   const eyeGeo = new THREE.SphereGeometry(0.17, 10, 10);
   for (const sx of [-0.3, 0.3]) {
-    const e = new THREE.Mesh(eyeGeo, basic(P.gold));
+    const e = new THREE.Mesh(eyeGeo, basic(P.shadeEdge));
     e.position.set(sx, 0.2, 0.78);
     e.scale.set(1, 1.3, 0.6);
     g.add(e);

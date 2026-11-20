@@ -149,7 +149,7 @@ describe("F5 Pause", () => {
     expect(at(rows, 11).sim_tick).toBe(10);
     expect(at(rows, 30).sim_tick).toBe(10);
     expect(at(rows, 30).tick).toBe(30);
-    expect(at(rows, 30).time_left_s).toBeCloseTo(300 - 10 / 60, 3);
+    expect(at(rows, 30).time_left_s).toBeCloseTo(240 - 10 / 60, 3); // Ticket-03: Đêm 1 dài 240 s
     expect(at(rows, 30).player.pos).toEqual(at(rows, 11).player.pos);
   });
   it("--ticks đếm cả tick tạm dừng; sau khi tiếp tục logic chạy bình thường", () => {

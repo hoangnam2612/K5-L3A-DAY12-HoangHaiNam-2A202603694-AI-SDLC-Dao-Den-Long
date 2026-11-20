@@ -1,0 +1,4 @@
+{"description":"FU6: fuel ≤ 0 → đèn tắt ngay sau bước 2, lantern_out, deposited=0, ever_lit=true","night":1,"seed":1,"ticks":5,
+ "scenario":{"random_motes":false,"random_shades":false,"random_drifters":false,"wind_enabled":false,"lanterns":[{"id":"L1","lit":true,"fuel":0.05}]},
+ "inputs":{"frames":[]},
+ "expect":{"events":[{"name":"lantern_out","tick":3,"data":{"lantern_id":"L1"}}],"last":{"lanterns[0].lit":false,"lanterns[0].fuel":0,"lanterns[0].ever_lit":true,"lanterns[0].deposited":0}}}

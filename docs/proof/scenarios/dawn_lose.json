@@ -1,0 +1,4 @@
+{"description":"WN3: hết giờ mà chỉ 2/5 đèn sáng (dưới ngưỡng 3) → thua dawn, không có điểm bình minh","night":1,"seed":1,"ticks":5,
+ "scenario":{"random_motes":false,"random_shades":false,"random_drifters":false,"wind_enabled":false,"time_left_s":0.016666666666666666,"lanterns":[{"id":"L1","lit":true},{"id":"L2","lit":true}]},
+ "inputs":{"frames":[]},
+ "expect":{"events":[{"name":"game_over","tick":1,"data":{"result":"lost","reason":"dawn"}}],"end":{"state":"lost","score":0}}}

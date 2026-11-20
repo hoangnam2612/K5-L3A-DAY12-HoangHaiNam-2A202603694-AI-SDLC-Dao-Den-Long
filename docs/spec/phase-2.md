@@ -52,3 +52,5 @@ Thứ tự xử lý trong một tick (bắt buộc, cài trong `Game.step`): 1 i
 
 ## Sáng tạo giữ lại (không đổi headless)
 Lốc xoáy càn quét + dải đỏ cảnh báo (chỉ game có giao diện, cả 3 Đêm, tắt trong headless). Lướt bất tử của Phase 1 **bị bỏ** theo ticket.
+
+> Ghi chú Phase 3: các mục S13 (thắng/thua, điểm), S8 (vùng an toàn) và hành vi bóng wander được Ticket-03 thay thế, xem `docs/spec/phase-3.md`.

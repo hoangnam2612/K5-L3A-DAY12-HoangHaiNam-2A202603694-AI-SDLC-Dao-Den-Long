@@ -52,12 +52,14 @@ describe("S7 đèn lồng", () => {
     expect(events(partial, "deposit").map((e) => e.data.deposited)).toEqual([4]); // hết đom đóm
     expect(events(partial, "lantern_lit")).toHaveLength(0);
   });
-  it("chỉ xét đèn chưa sáng; chọn đèn gần nhất, bằng nhau thì id nhỏ hơn", () => {
+  it("chọn đèn gần nhất (đèn sáng chưa đầy dầu cũng nhận được), bằng nhau thì id nhỏ hơn", () => {
     const frames = [{ tick: 0, interact: true }];
     const tie = run({ player: { pos: [0, 0, 0], carried: 3 }, lanterns: [{ id: "L1", pos: [1, 0, 0] }, { id: "L2", pos: [-1, 0, 0] }] }, 1, frames);
     expect(events(tie, "deposit")[0]!.data.lantern_id).toBe("L1");
-    const skipLit = run({ player: { pos: [0, 0, 0], carried: 3 }, lanterns: [{ id: "L1", pos: [1, 0, 0], lit: true }, { id: "L2", pos: [-1.5, 0, 0] }] }, 1, frames);
-    expect(events(skipLit, "deposit")[0]!.data.lantern_id).toBe("L2");
+    // Ticket-03: đèn sáng chưa đầy dầu cũng nhận được (châm dầu). Dầu hao ở bước 2 trước khi tương tác nên đèn vừa thắp không bao giờ đầy.
+    const nearerLit = run({ player: { pos: [0, 0, 0], carried: 3 }, lanterns: [{ id: "L1", pos: [1, 0, 0], lit: true }, { id: "L2", pos: [-1.5, 0, 0] }] }, 1, frames);
+    expect(events(nearerLit, "refuel")[0]!.data.lantern_id).toBe("L1");
+    expect(events(nearerLit, "deposit")).toHaveLength(0);
     const closer = run({ player: { pos: [0, 0, 0], carried: 3 }, lanterns: [{ id: "L1", pos: [1.5, 0, 0] }, { id: "L2", pos: [-1, 0, 0] }] }, 1, frames);
     expect(events(closer, "deposit")[0]!.data.lantern_id).toBe("L2");
   });
@@ -66,33 +68,56 @@ describe("S7 đèn lồng", () => {
   });
 });
 
-describe("S13 thắng/thua và điểm", () => {
-  it("thắng: điểm = nạp + đèn + giây còn lại ×2 + 50 × Ngọn Lửa", () => {
-    const rows = run({ player: { pos: near, carried: 10 }, lanterns: others }, 5, [{ tick: 0, interact: true }]);
-    const expected = 10 * T.score.per_mote + T.score.per_lantern + Math.floor(300 - 1 / 60) * T.score.per_second_left + 3 * T.score.per_flame_left;
-    expect(rows.at(-1)).toMatchObject({ type: "end", state: "won", ticks: 1, score: expected });
-    expect(events(rows, "game_over")[0]!.data).toEqual({ result: "won", reason: "all_lit" });
+describe("WN/SC thắng, thua và điểm (Ticket-03, thay S13 của Phase 2)", () => {
+  const lit = (n: number) => Array.from({ length: n }, (_, i) => ({ id: `L${i + 1}`, lit: true }));
+  it("thắp đủ đèn KHÔNG còn kết thúc Đêm (luật cũ: thắng ngay)", () => {
+    const rows = run({ player: { pos: near, carried: 10 }, lanterns: others }, 30, [{ tick: 0, interact: true }]);
+    expect(events(rows, "lantern_lit")).toHaveLength(1);
+    expect(events(rows, "game_over")).toHaveLength(0);
+    expect(rows.at(-1)).toMatchObject({ type: "end", state: "playing", ticks: 30 });
   });
-  it("thắng cả khi thắp đèn cuối đúng tick hết giờ", () => {
-    const rows = run({ time_left_s: 1 / 60, player: { pos: near, carried: 10 }, lanterns: others }, 5, [{ tick: 0, interact: true }]);
-    expect(rows.at(-1)).toMatchObject({ state: "won" });
+  it("hết giờ: còn sống và đèn sáng ≥ ceil(0.6 × 5) = 3 thì thắng (dawn_survived), điểm bình minh = Σ(50 + floor(fuel)) + 50 × lửa", () => {
+    const rows = run({ time_left_s: 1 / 60, lanterns: lit(3) }, 5);
+    expect(events(rows, "game_over")[0]!.data).toEqual({ result: "won", reason: "dawn_survived" });
+    expect(rows.at(-1)).toMatchObject({ type: "end", state: "won", ticks: 1, score: 3 * (T.score.per_lantern_dawn + 99) + 3 * T.score.per_flame_left });
   });
-  it("hết giờ mà còn đèn tối thì thua (dawn)", () => {
-    const rows = run({ time_left_s: 0.01 }, 5);
-    expect(events(rows, "game_over")[0]).toMatchObject({ tick: 1, data: { result: "lost", reason: "dawn" } });
+  it("không còn thưởng thời gian", () => {
+    expect(T.score.per_second_left).toBe(0);
+  });
+  it("hết giờ mà số đèn sáng dưới ngưỡng thì thua (dawn), không có điểm bình minh", () => {
+    const rows = run({ time_left_s: 1 / 60, lanterns: lit(2) }, 5);
+    expect(events(rows, "game_over")[0]!.data).toEqual({ result: "lost", reason: "dawn" });
+    expect(rows.at(-1)).toMatchObject({ state: "lost", score: 0 });
+  });
+  it("ngưỡng theo Đêm: cần 3/5, 4/6, 5/7 đèn sáng", () => {
+    const won = (night: 1 | 2 | 3, n: number) => run({ time_left_s: 1 / 60, lanterns: lit(n) }, 3, [], { night }).at(-1)!.state;
+    expect([won(1, 2), won(1, 3)]).toEqual(["lost", "won"]);
+    expect([won(2, 3), won(2, 4)]).toEqual(["lost", "won"]);
+    expect([won(3, 4), won(3, 5)]).toEqual(["lost", "won"]);
+  });
+  it("hết Ngọn Lửa luôn thua (no_flames), kể cả ở tick bình minh dù đủ đèn sáng", () => {
+    const rows = run({ time_left_s: 1 / 60, player: { flames: 1 }, lanterns: lit(5), shades: [{ id: "S1", pos: [0, 1, 0.5] }] }, 5);
+    expect(events(rows, "game_over")[0]!.data).toEqual({ result: "lost", reason: "no_flames" });
+    expect(rows.at(-1)).toMatchObject({ state: "lost", ticks: 1 });
   });
   it("hết Ngọn Lửa vì bị bóng đánh lần cuối thì thua (no_flames)", () => {
     const rows = run({ player: { flames: 1 }, shades: [{ id: "S1", pos: [0, 1, 0.5] }] }, 5);
     expect(events(rows, "game_over")[0]!.data).toEqual({ result: "lost", reason: "no_flames" });
     expect(rows.at(-1)).toMatchObject({ state: "lost", ticks: 1 });
   });
-  it("thứ tự xét: hết lửa thắng mọi thứ, kể cả khi mọi đèn đã sáng", () => {
-    const g = game();
-    g.lanterns.forEach((l) => { l.lit = true; });
+  it("thứ tự xét: hết lửa thắng mọi thứ, kể cả khi đủ đèn sáng ở tick bình minh", () => {
+    const g = game({ time_left_s: 1 / 60, lanterns: lit(5) });
     g.player.flames = 0;
     g.step();
     expect(g.state).toBe("lost");
     expect(g.events.find((e) => e.name === "game_over")!.data).toEqual({ result: "lost", reason: "no_flames" });
+  });
+  it("điểm: +5 mỗi đom đóm nạp, +100 thắp lần đầu, +40 thắp lại; thắp lại chỉ cần 5 đom đóm", () => {
+    const first = run({ player: { pos: near, carried: 10 } }, 1, [{ tick: 0, interact: true }]);
+    expect(last(first).score).toBe(10 * T.score.per_mote + T.score.per_lantern);
+    const relit = run({ player: { pos: near, carried: 5 }, lanterns: [{ id: "L1", ever_lit: true }] }, 1, [{ tick: 0, interact: true }]);
+    expect(events(relit, "lantern_lit")[0]!.data).toEqual({ lantern_id: "L1", relight: true });
+    expect(last(relit).score).toBe(5 * T.score.per_mote + T.score.per_relight);
   });
 });
 

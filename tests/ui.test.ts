@@ -1,15 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { countdownBeep, soundsForEvents } from "../src/render/audio";
 import { Flow, NIGHT_INFO, type NightResult } from "../src/render/flow";
-import { arrowFor, cooldownRatio, formatTime, isLowTime, lanternPrompt, moteCells } from "../src/render/hudlogic";
-import { ambientIntensity, hex, PALETTE } from "../src/render/palette";
+import { arrowFor, blinkOn, cooldownRatio, formatTime, isLowFuel, isLowTime, lanternPrompt, moteCells, needLit, refuelPrompt } from "../src/render/hudlogic";
+import { ambientIntensity, dangerColor, hex, PALETTE, shadeEdgeColor } from "../src/render/palette";
 import { DEFAULT_SETTINGS, loadSettings, sanitize, saveSettings, SETTINGS_KEY } from "../src/render/settings";
 
 const fakeStorage = () => {
   const m = new Map<string, string>();
   return { getItem: (k: string) => m.get(k) ?? null, setItem: (k: string, v: string) => void m.set(k, v), m };
 };
-const res = (night: 1 | 2 | 3, won: boolean, score = 100): NightResult => ({ night, won, score, lanternsLit: won ? 5 : 2, lanternsTotal: 5, flames: 2, timeLeft: 40 });
+const res = (night: 1 | 2 | 3, won: boolean, score = 100): NightResult => ({ night, won, score, lanternsLit: won ? 5 : 2, lanternsTotal: 5, flames: 2, timeLeft: 40, needed: 3, reason: won ? "dawn_survived" : "dawn" });
 
 describe("F4 chuỗi 3 Đêm (máy trạng thái)", () => {
   it("Menu → giới thiệu Đêm 1 → chơi → thắng → kết quả → giới thiệu Đêm 2 → ... → Bình Minh với tổng điểm", () => {
@@ -84,14 +84,14 @@ describe("F6 cài đặt được lưu giữa các lần mở", () => {
   });
   it("lưu rồi tải lại thấy đúng giá trị", () => {
     const st = fakeStorage();
-    expect(saveSettings({ volume: 0.3, sensitivity: 1.8 }, st)).toBe(true);
-    expect(loadSettings(st)).toEqual({ volume: 0.3, sensitivity: 1.8 });
+    expect(saveSettings({ volume: 0.3, sensitivity: 1.8, colorblind: true }, st)).toBe(true);
+    expect(loadSettings(st)).toEqual({ volume: 0.3, sensitivity: 1.8, colorblind: true });
   });
   it("dữ liệu hỏng hoặc ngoài khoảng được làm sạch; storage lỗi thì dùng mặc định", () => {
     const st = fakeStorage();
     st.m.set(SETTINGS_KEY, "không phải json");
     expect(loadSettings(st)).toEqual(DEFAULT_SETTINGS);
-    expect(sanitize({ volume: 5, sensitivity: -1 })).toEqual({ volume: 1, sensitivity: 0.2 });
+    expect(sanitize({ volume: 5, sensitivity: -1, colorblind: "yes" })).toEqual({ volume: 1, sensitivity: 0.2, colorblind: false });
     expect(sanitize(null)).toEqual(DEFAULT_SETTINGS);
     const broken = { getItem: () => { throw new Error("x"); }, setItem: () => { throw new Error("x"); } };
     expect(loadSettings(broken)).toEqual(DEFAULT_SETTINGS);
@@ -175,5 +175,44 @@ describe("F7 âm thanh: sự kiện của sim → hiệu ứng", () => {
     expect(countdownBeep(9.99, 9.97)).toBe(false);
     expect(countdownBeep(1.01, 0.99)).toBe(true);
     expect(countdownBeep(0.02, -0.01)).toBe(false);
+  });
+});
+
+describe("Ticket-03: HUD đèn cạn dầu", () => {
+  it("ngưỡng đèn sáng tối thiểu: ceil(0.6 × tổng) = 3/5, 4/6, 5/7", () => {
+    expect([needLit(5), needLit(6), needLit(7)]).toEqual([3, 4, 5]);
+  });
+  it("nhắc châm dầu cho đèn đang sáng; nhắc thắp lại hiện tiến độ x/5", () => {
+    expect(refuelPrompt(62.7)).toBe("E — Châm dầu (62/100)");
+    expect(lanternPrompt(3, 5)).toBe("E — Nạp ánh sáng (3/5)");
+  });
+  it("đèn sắp hết dầu (fuel < 30) nhấp nháy 1 Hz", () => {
+    expect(isLowFuel(29.9)).toBe(true);
+    expect(isLowFuel(30)).toBe(false);
+    const phases = [0, 0.25, 0.5, 0.75, 1, 1.25, 1.5].map(blinkOn);
+    expect(phases).toEqual([true, true, false, false, true, true, false]);
+  });
+  it("thanh đom đóm theo sức chứa tới 20 ô", () => {
+    expect(moteCells(12, 20).filter(Boolean)).toHaveLength(12);
+    expect(moteCells(0, 20)).toHaveLength(20);
+  });
+});
+
+describe("CB chế độ mù màu (Ticket-03)", () => {
+  it("viền và mắt Bóng Mực #7A3CFF → #00B3FF; màu cảnh báo #FF5A5F → #FFFFFF", () => {
+    expect(hex(shadeEdgeColor(false))).toBe("#7a3cff");
+    expect(hex(shadeEdgeColor(true))).toBe("#00b3ff");
+    expect(hex(dangerColor(false))).toBe("#ff5a5f");
+    expect(hex(dangerColor(true))).toBe("#ffffff");
+  });
+  it("cài đặt 'Bảng màu dễ phân biệt' được lưu giữa các lần mở; mặc định tắt", () => {
+    const st = fakeStorage();
+    expect(loadSettings(st).colorblind).toBe(false);
+    saveSettings({ ...DEFAULT_SETTINGS, colorblind: true }, st);
+    expect(loadSettings(st).colorblind).toBe(true);
+  });
+  it("sự kiện mới có âm thanh: châm dầu, đèn tắt, bóng hút dầu", () => {
+    const ev = (name: string) => ({ name: name as any, data: {} });
+    expect(soundsForEvents([ev("refuel"), ev("lantern_out"), ev("fuel_drain")])).toEqual(["deposit", "out", "drain"]);
   });
 });

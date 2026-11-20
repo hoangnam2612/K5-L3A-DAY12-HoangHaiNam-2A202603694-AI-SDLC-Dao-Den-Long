@@ -1,0 +1,4 @@
+{"description":"FU7: đèn từng sáng chỉ cần 5 đom đóm để thắp lại (+25 +40 điểm), sức chứa tăng lên 12","night":1,"seed":1,"ticks":1,
+ "scenario":{"random_motes":false,"random_shades":false,"random_drifters":false,"wind_enabled":false,"player":{"pos":[0,0,23],"carried":5},"lanterns":[{"id":"L1","ever_lit":true}]},
+ "inputs":{"frames":[{"tick":0,"interact":true}]},
+ "expect":{"events":[{"name":"lantern_lit","data":{"lantern_id":"L1","relight":true}}],"last":{"score":65,"player.capacity":12,"lanterns[0].relit_count":1,"lanterns[0].fuel":100}}}

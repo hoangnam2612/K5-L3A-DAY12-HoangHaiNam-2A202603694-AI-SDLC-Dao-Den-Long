@@ -1,0 +1,4 @@
+{"description":"DR2-DR5: bóng wander tới đèn yếu (fuel<30), sang drain, hút 5/s; fuel_drain mỗi 60 tick","night":1,"seed":1,"ticks":130,"snapshot_every":1,
+ "scenario":{"random_motes":false,"random_shades":false,"random_drifters":false,"wind_enabled":false,"player":{"pos":[0,0,-35]},"lanterns":[{"id":"L1","lit":true,"fuel":25}],"shades":[{"id":"S1","pos":[0,1,26],"state":"wander"}]},
+ "inputs":{"frames":[]},
+ "expect":{"events":[{"name":"fuel_drain","tick":61,"data":{"lantern_id":"L1","shade_id":"S1","fuel":19}}],"at":{"1":{"shades[0].state":"drain","shades[0].target_lantern_id":"L1"}}}}

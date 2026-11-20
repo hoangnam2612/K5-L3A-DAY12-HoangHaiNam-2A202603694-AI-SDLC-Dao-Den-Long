@@ -6,7 +6,7 @@ export const NIGHT_INFO: Record<Night, { title: string; island: string; elder: s
   1: {
     title: "Đêm 1",
     island: "Đảo Bến",
-    elder: "Ông Đăng: Cháu à, năm ngọn đèn lồng ở bến đã tắt rồi. Hãy gom đom đóm thắp lại chúng, và đừng để Bóng Mực chạm vào cháu nhé.",
+    elder: "Ông Đăng: Cháu à, năm ngọn đèn lồng ở bến đã tắt rồi. Hãy gom đom đóm thắp lại chúng, nhớ châm dầu cho đèn khỏi tắt, và đừng để Bóng Mực chạm vào cháu nhé. Giữ đủ đèn sáng tới bình minh là thắng.",
   },
   2: {
     title: "Đêm 2",
@@ -20,7 +20,7 @@ export const NIGHT_INFO: Record<Night, { title: string; island: string; elder: s
   },
 };
 
-export interface NightResult { night: Night; won: boolean; score: number; lanternsLit: number; lanternsTotal: number; flames: number; timeLeft: number }
+export interface NightResult { night: Night; won: boolean; score: number; lanternsLit: number; lanternsTotal: number; flames: number; timeLeft: number; needed: number; reason: string }
 
 export class Flow {
   screen: Screen = "menu";

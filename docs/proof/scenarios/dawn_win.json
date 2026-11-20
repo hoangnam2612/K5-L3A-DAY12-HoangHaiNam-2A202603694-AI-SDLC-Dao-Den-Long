@@ -1,0 +1,4 @@
+{"description":"WN2/SC3: hết giờ còn sống và ≥3/5 đèn sáng → thắng dawn_survived; điểm = 3×(50+99) + 3×50 = 597","night":1,"seed":1,"ticks":5,
+ "scenario":{"random_motes":false,"random_shades":false,"random_drifters":false,"wind_enabled":false,"time_left_s":0.016666666666666666,"lanterns":[{"id":"L1","lit":true},{"id":"L2","lit":true},{"id":"L3","lit":true}]},
+ "inputs":{"frames":[]},
+ "expect":{"events":[{"name":"game_over","tick":1,"data":{"result":"won","reason":"dawn_survived"}}],"end":{"state":"won","score":597,"ticks":1}}}

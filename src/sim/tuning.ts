@@ -9,9 +9,9 @@ export const TUNING = {
   interact_radius: 2.0,
   pulse_cost: 3,
   pulse_radius: 5,
-  night1_duration_s: 300,
-  night2_duration_s: 330,
-  night3_duration_s: 360,
+  night1_duration_s: 240,
+  night2_duration_s: 270,
+  night3_duration_s: 300,
   flames: 3,
   invuln_s: 1.5,
   hit_drop_ratio: 0.5,
@@ -25,12 +25,24 @@ export const TUNING = {
   dash_speed: 14,
   dash_duration_s: 0.2,
   dash_cooldown_s: 1.5,
+  // Ticket-03 (contract v1.2): đèn cạn dầu
+  fuel_max: 100,
+  fuel_decay_per_s: 1.0,
+  fuel_per_mote: 10,
+  relight_cost: 5,
+  win_ratio: 0.6,
+  drain_per_s: 5,
+  low_fuel_threshold: 30,
+  capacity_max: 20,
   score: {
-    per_mote: 10,
-    per_lantern: 100,
+    per_mote: 5, // mỗi đom đóm nạp (thắp mới, thắp lại, châm dầu)
+    per_lantern: 100, // thắp lần đầu
     per_stun: 5,
-    per_second_left: 2,
+    per_second_left: 0, // bỏ thưởng thời gian
     per_flame_left: 50,
+    per_relight: 40, // thắp lại
+    per_stun_drain_bonus: 10, // thêm khi bóng đang drain lúc trúng Tỏa Sáng (tổng +15)
+    per_lantern_dawn: 50, // mỗi đèn sáng lúc bình minh, cộng thêm floor(fuel)
   },
 };
 
@@ -76,6 +88,7 @@ export const WORLD = {
   shade_recoil_ticks: 60,
   shade_speed_night3: 4.5,
   safe_push_ticks: 30,
+  drain_range: 2, // bóng tới gần đèn ≤ 2 m thì hút dầu (Ticket-03)
   // Gió Lạc
   drifter_speed: 7,
   drifter_idle_speed: 2,

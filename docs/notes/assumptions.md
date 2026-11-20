@@ -43,3 +43,26 @@ Ticket-02 thay các giá trị Phase 1: #1 (số liệu), #3 (rơi đảo: nay c
 | P14 | Tháp chuông | Trụ r=2, cao 8 m trên tầng 2, chặn Mây và bóng theo phương ngang |
 | P15 | Bất tử 90 tick | Bộ đếm đặt 90 lúc bị đánh, giảm ở bước 2 mỗi tick; xét bất tử sau khi giảm |
 | P16 | Lốc xoáy (sáng tạo) | Giữ ở cả 3 Đêm, chỉ game có giao diện; đường quét theo từng đảo/vùng chơi; không đổi số chuẩn |
+
+# Giả định Phase 3 (Ticket-03 "Đèn cạn dầu")
+
+Ticket-03 thay các giá trị/luật: Phase 2 P5 (bóng `wander` đi ngẫu nhiên), luật thắng "sáng hết là thắng", điểm, thời gian Đêm, vùng an toàn của mọi đèn sáng. Chỗ ticket còn mơ hồ, tôi chọn như sau (**chưa chắc** nếu có thể lệch test ẩn).
+
+| # | Điểm mơ hồ | Giả định |
+|---|---|---|
+| Q1 | Bóng `wander` trước Ticket-03 | Ticket ghi "đi về đèn tắt gần nhất như trước", nên bóng wander đi tới đèn yếu, không có thì tới đèn tắt gần nhất, tốc độ 2.0 m/s (giữ giả định cũ); tới ≤ 2 m đèn tắt thì đứng gác; chỉ khi không có đèn nào cần mới đi ngẫu nhiên |
+| Q2 | Đơn vị và làm tròn dầu | Lưu số nguyên theo 1/60 đơn vị; xuất snapshot và event làm tròn 1 chữ số thập phân; `floor(fuel)` ở bình minh tính từ số nguyên |
+| Q3 | Bấm tương tác khi không mang đom đóm | Không làm gì (không event), như Phase 2 |
+| Q4 | `deposited` của đèn đang sáng | Bằng chi phí thắp lúc đó (10 hoặc 5); về 0 khi đèn tắt. Đèn scenario `lit:true` có `deposited ≥` chi phí và `ever_lit: true` mặc định |
+| Q5 | `successful_lights` | Tăng mỗi lần thắp thành công kể cả thắp lại; châm dầu và đèn đặt sẵn bằng scenario không tính |
+| Q6 | Thứ tự dầu và tương tác trong tick | Hao dầu ở bước 2 trước khi tương tác ở bước 5, nên đèn vừa thắp ở lần bấm E kế tiếp có 99.98 (cần 1 đom đóm để đầy). "Đèn đầy dầu không được chọn" chỉ gặp khi dầu đặt cao hơn mức tối đa trước khi hao |
+| Q7 | `fuel_drain` | Mỗi bóng phát một event khi số tick đã hút chia hết cho 60 (tick đầu hút là tick sau khi vào `drain`); `fuel` trong event là dầu của đèn sau khi trừ mọi nguồn trong tick đó |
+| Q8 | Thưởng +15 | Xét trạng thái của bóng **trước** khi Tỏa Sáng đổi nó (bước 7): đang `drain` thì +5 +10 |
+| Q9 | Hết choáng, hết recoil, hết spawning | Hết choáng về `wander` (ticket nêu); hết recoil về `chase` nếu còn trong 18 m (giữ Phase 2); hết spawning về `chase` nếu ≤ 12 m, không thì `wander` |
+| Q10 | Đèn rớt xuống dưới 30 khi có bóng bên trong vùng | Vùng biến mất, không đẩy ai; bóng không bị kẹt |
+| Q11 | Khóa `score` trong contract | Giữ các khóa cũ với giá trị mới (`per_mote` 5, `per_lantern` 100, `per_stun` 5, `per_second_left` 0, `per_flame_left` 50) và thêm `per_relight` 40, `per_stun_drain_bonus` 10, `per_lantern_dawn` 50 |
+| Q12 | Bóng `drain` có gây sát thương không | Không: chỉ bóng `wander`/`chase` gây sát thương; Mây vào trong 6 m thì bóng `drain` chuyển `chase` |
+| Q13 | Mắt Bóng Mực | Mắt dùng cùng màu với viền (`#7A3CFF`, mù màu `#00B3FF`) theo mô tả ticket |
+| Q14 | Ngưỡng thắng | `ceil(0.6 × tổng đèn − 1e-9)` để tránh sai số số thực (3/5, 4/6, 5/7) |
+| Q15 | Điểm bình minh khi thua | Không cộng (ticket: "chỉ khi thắng") |
+| Q16 | Lốc xoáy (sáng tạo) | Không đổi: chỉ game có giao diện, không tương tác với dầu |

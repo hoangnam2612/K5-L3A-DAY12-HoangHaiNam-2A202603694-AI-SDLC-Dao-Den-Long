@@ -19,14 +19,21 @@ const CONTROLS = `<p class="keys"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kb
 const GUIDE = `
   <h2>Cách chơi</h2>
   <ul>
-    <li>Nhặt <b>đom đóm</b> (mang tối đa 10), nạp vào <b>Đèn Lồng Lớn</b> bằng <kbd>E</kbd>. Mỗi đèn cần 10 đom đóm. Thắp hết đèn trước bình minh để thắng.</li>
-    <li><b>Bóng Mực</b> đuổi theo: chạm vào mất 1 ngọn lửa và đánh rơi nửa số đom đóm. Hết 3 ngọn lửa là thua. Quanh đèn đã sáng (6 m) là vùng an toàn.</li>
+    <li>Nhặt <b>đom đóm</b>, nạp vào <b>Đèn Lồng Lớn</b> bằng <kbd>E</kbd>: đèn mới cần 10 đom đóm, đèn từng sáng chỉ cần 5. Mỗi lần thắp thành công tăng sức chứa thêm 2 (10 → tối đa 20).</li>
+    <li><b>Đèn cạn dầu</b>: đèn sáng hao 1 dầu mỗi giây, hết dầu là tắt. Đứng cạnh đèn nhấn <kbd>E</kbd> để <b>châm dầu</b> (mỗi đom đóm +10). Thắng khi <b>còn sống tới bình minh</b> và giữ đủ đèn sáng (3/5, 4/6, 5/7).</li>
+    <li><b>Bóng Mực</b> đuổi theo: chạm vào mất 1 ngọn lửa và đánh rơi nửa số đom đóm. Hết 3 ngọn lửa là thua. Quanh đèn còn từ 30 dầu trở lên (6 m) là vùng an toàn; đèn sắp cạn nhấp nháy và bị Bóng Mực kéo tới hút dầu, hãy Tỏa Sáng đuổi chúng.</li>
     <li><kbd>Q</kbd> Tỏa Sáng (tốn 3 đom đóm) làm choáng và đẩy lùi Bóng Mực. <kbd>F</kbd> lướt nhanh, nhưng không bất tử.</li>
     <li><b>Gió Lạc</b> cướp đom đóm khi bạn mang từ 5 con. Tỏa Sáng làm chúng bỏ chạy hoặc nhả đồ. <b>Bùa Gió</b> tăng tốc và cho lướt liên tục 10 giây.</li>
     <li><b>Lốc xoáy</b>: thấy dải đỏ và viền đỏ nhấp nháy là chạy ra khỏi dải. Bước ra khỏi đảo thì rơi xuống biển mây và mất 1 ngọn lửa.</li>
   </ul>`;
 
-const SCORE = `<h2>Điểm</h2><p>Nạp đom đóm +10 · thắp đèn +100 · làm choáng bóng +5 · khi thắng +2 mỗi giây còn lại và +50 mỗi ngọn lửa còn lại.</p>`;
+const REASONS: Record<string, string> = {
+  dawn_survived: "Bạn còn sống tới bình minh và giữ đủ đèn sáng.",
+  dawn: "Trời sáng nhưng số đèn còn sáng chưa đủ.",
+  no_flames: "Bạn đã hết ngọn lửa.",
+};
+
+const SCORE = `<h2>Điểm</h2><p>Mỗi đom đóm nạp +5 · thắp lần đầu +100 · thắp lại +40 · làm choáng bóng +5 (+15 nếu nó đang hút dầu) · khi thắng: mỗi đèn sáng +50 cộng thêm phần dầu còn lại, mỗi ngọn lửa còn lại +50.</p>`;
 
 /** Các màn hình phủ lên game: menu, giới thiệu Đêm, tạm dừng, cài đặt, kết quả, Bình Minh. */
 export class Screens {
@@ -49,6 +56,10 @@ export class Screens {
       h.setSettings(s);
       const label = root.querySelector(`#${t.id}-v`);
       if (label) label.textContent = t.id === "set-volume" ? `${t.value}%` : `${(Number(t.value) / 100).toFixed(1)}×`;
+    });
+    root.addEventListener("change", (e) => {
+      const t = e.target as HTMLInputElement;
+      if (t.id === "set-cb") h.setSettings({ ...this.getSettings(), colorblind: t.checked });
     });
     addEventListener("keydown", (e) => {
       if (e.code === "Enter" || e.code === "NumpadEnter") {
@@ -94,15 +105,17 @@ export class Screens {
           <input id="set-volume" type="range" min="0" max="100" value="${Math.round(s.volume * 100)}" />
           <label>Độ nhạy chuột <b id="set-sens-v">${s.sensitivity.toFixed(1)}×</b></label>
           <input id="set-sens" type="range" min="20" max="300" value="${Math.round(s.sensitivity * 100)}" />
+          <label class="check"><span>Bảng màu dễ phân biệt (mù màu)</span><input id="set-cb" type="checkbox" ${s.colorblind ? "checked" : ""} /></label>
           <p class="muted">Cài đặt được lưu và giữ lại cho lần mở sau.</p>
           <div class="btns"><button id="btn-back">Quay lại</button></div>`);
         break;
       case "result": {
         const r = f.result!;
         this.card(`<p class="eyebrow">Đêm ${r.night} · ${NIGHT_INFO[r.night].island}</p>
-          <h1>${r.won ? "Đèn đã sáng!" : "Đêm tàn, ánh đèn đã tắt"}</h1>
+          <h1>${r.won ? "Bình minh, đảo vẫn sáng!" : "Đêm tàn, ánh đèn đã tắt"}</h1>
           <p class="big">Điểm Đêm này: <b>${r.score}</b></p>
-          <p>Đèn đã thắp ${r.lanternsLit}/${r.lanternsTotal} · Ngọn lửa còn ${r.flames} · Thời gian còn ${formatTime(r.timeLeft)}</p>
+          <p>Đèn sáng lúc bình minh ${r.lanternsLit}/${r.lanternsTotal} (cần ${r.needed}) · Ngọn lửa còn ${r.flames}</p>
+          <p class="muted">${REASONS[r.reason] ?? ""}</p>
           ${r.won ? `<p>Tổng điểm: <b>${f.total}</b></p>` : `<p class="muted">Bạn được chơi lại Đêm này.</p>`}
           <div class="btns"><button id="btn-next">${r.won ? "Đêm kế tiếp (Enter)" : "Chơi lại Đêm (Enter)"}</button><button id="btn-menu" class="alt">Về menu</button></div>`);
         break;

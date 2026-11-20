@@ -26,3 +26,9 @@ export const hex = (n: number): string => `#${n.toString(16).padStart(6, "0")}`;
 
 /** Cường độ ánh sáng môi trường tăng theo tiến độ thắp đèn. */
 export const ambientIntensity = (lit: number, total: number): number => 0.15 + 0.55 * (total > 0 ? lit / total : 0);
+
+// Chế độ mù màu (Ticket-03): "Bảng màu dễ phân biệt".
+export const SHADE_EDGE_CB = 0x00b3ff; // viền và mắt Bóng Mực: #7A3CFF → #00B3FF
+export const DANGER_CB = 0xffffff; // màu cảnh báo UI: #FF5A5F → #FFFFFF (kèm biểu tượng ⚠)
+export const shadeEdgeColor = (cb: boolean): number => (cb ? SHADE_EDGE_CB : PALETTE.shadeEdge);
+export const dangerColor = (cb: boolean): number => (cb ? DANGER_CB : PALETTE.danger);

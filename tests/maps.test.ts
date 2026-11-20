@@ -11,7 +11,7 @@ describe("M1 Đêm 1: Đảo Bến", () => {
   it("5 đèn đúng tọa độ chuẩn, xuất phát (0,0,0)", () => {
     expect(n.lanterns).toEqual([[0, 0, 25], [23.8, 0, 7.7], [14.7, 0, -20.2], [-14.7, 0, -20.2], [-23.8, 0, 7.7]]);
     expect(n.start).toEqual([0, 0, 0]);
-    expect(n.duration_s).toBe(300);
+    expect(n.duration_s).toBe(240); // Ticket-03: 300 → 240
   });
   it("24 điểm đom đóm: 8 ở r=12 và 16 ở r=33; 12 điểm sinh bóng ở r=37 (15°, 45°, ...)", () => {
     const r = n.moteSpawns.map(([x, z]) => Math.round(Math.hypot(x, z)));
@@ -34,14 +34,14 @@ describe("M1 Đêm 1: Đảo Bến", () => {
 
 describe("M2 Đêm 2: Đảo Cau", () => {
   const n = NIGHTS[2];
-  it("6 đèn, 24 điểm đom đóm (12/đảo), 16 điểm sinh bóng r=26, bóng 7 s tối đa 8, 330 s", () => {
+  it("6 đèn, 24 điểm đom đóm (12/đảo), 16 điểm sinh bóng r=26, bóng 7 s tối đa 8, 270 s", () => {
     expect(n.lanterns).toHaveLength(6);
     expect(n.lanterns[3]).toEqual([70, 0, 20]);
     expect(n.moteSpawns).toHaveLength(24);
     expect(n.shadeSpawns).toHaveLength(16);
     expect(n.shadeInterval).toBe(420);
     expect(n.shadeMax).toBe(8);
-    expect(n.duration_s).toBe(330);
+    expect(n.duration_s).toBe(270); // Ticket-03: 330 → 270
     expect(n.charms).toEqual([[35, 0, 0]]);
   });
   it("đi từ đảo A sang đảo B qua cầu tre mà không rơi", () => {
@@ -79,7 +79,7 @@ describe("M2 Đêm 2: Đảo Cau", () => {
 describe("M3 Đêm 3: Đảo Chuông", () => {
   const n = NIGHTS[3];
   const t = makeTerrain(3);
-  it("7 đèn, 30 điểm đom đóm (18 + 8 + 4), 16 điểm sinh bóng r=43, bóng 6 s tối đa 10, 4.5 m/s, 360 s", () => {
+  it("7 đèn, 30 điểm đom đóm (18 + 8 + 4), 16 điểm sinh bóng r=43, bóng 6 s tối đa 10, 4.5 m/s, 300 s", () => {
     expect(n.lanterns).toHaveLength(7);
     expect(n.lanterns[0]).toEqual([0, 6, 6]);
     expect(n.moteSpawns).toHaveLength(30);
@@ -87,7 +87,7 @@ describe("M3 Đêm 3: Đảo Chuông", () => {
     expect(n.shadeInterval).toBe(360);
     expect(n.shadeMax).toBe(10);
     expect(n.shadeSpeed).toBe(4.5);
-    expect(n.duration_s).toBe(360);
+    expect(n.duration_s).toBe(300); // Ticket-03: 360 → 300
     expect(n.charms).toEqual([[30, 0, 25], [-30, 0, 25]]);
   });
   it("3 tầng: tầng 0 (Y=0), tầng 1 (Y=3, r 12-24, z>0), tầng 2 (Y=6, r<=8)", () => {
@@ -141,12 +141,12 @@ describe("M3 Đêm 3: Đảo Chuông", () => {
 });
 
 describe("--night và số chuẩn theo Đêm", () => {
-  it("snapshot có trường night; thời gian 300/330/360", () => {
+  it("snapshot có trường night; thời gian 240/270/300", () => {
     for (const night of [1, 2, 3] as const) {
       const s = snaps(run({}, 0, [], { night }))[0]!;
       expect(s.night).toBe(night);
-      expect(s.time_left_s).toBe([300, 330, 360][night - 1]);
+      expect(s.time_left_s).toBe([240, 270, 300][night - 1]);
     }
-    expect(T.night2_duration_s).toBe(330);
+    expect(T.night2_duration_s).toBe(270);
   });
 });

@@ -32,7 +32,7 @@ export function parseScenario(raw: unknown): Scenario {
   if (s.player !== undefined) {
     if (!isObj(s.player)) fail("scenario: 'player' sai kiểu");
     if (s.player.pos !== undefined && !isVec3(s.player.pos)) fail("scenario: player.pos phải là [x,y,z]");
-    for (const k of ["carried", "flames", "invuln_ticks", "dash_cd_ticks", "pulse_cd_ticks", "charm_ticks"]) {
+    for (const k of ["carried", "flames", "invuln_ticks", "dash_cd_ticks", "pulse_cd_ticks", "charm_ticks", "successful_lights"]) {
       if (s.player[k] !== undefined && !isNum(s.player[k])) fail(`scenario: player.${k} phải là số`);
     }
   }
@@ -44,7 +44,8 @@ export function parseScenario(raw: unknown): Scenario {
     if (!Array.isArray(s.shades) || !s.shades.every((x: any) =>
       isObj(x) && isVec3(x.pos) && (x.id === undefined || typeof x.id === "string") &&
       (x.state === undefined || SHADE_STATES.includes(x.state)) &&
-      (x.state_ticks_left === undefined || (isNum(x.state_ticks_left) && x.state_ticks_left >= 0)))) fail("scenario: 'shades' sai định dạng");
+      (x.state_ticks_left === undefined || (isNum(x.state_ticks_left) && x.state_ticks_left >= 0)) &&
+      (x.target_lantern_id === undefined || typeof x.target_lantern_id === "string"))) fail("scenario: 'shades' sai định dạng");
   }
   if (s.drifters !== undefined) {
     if (!Array.isArray(s.drifters) || !s.drifters.every((x: any) =>
@@ -59,7 +60,8 @@ export function parseScenario(raw: unknown): Scenario {
       (x.respawn_ticks === undefined || isNum(x.respawn_ticks)))) fail("scenario: 'charms' sai định dạng");
   }
   if (s.lanterns !== undefined) {
-    if (!Array.isArray(s.lanterns) || !s.lanterns.every((x: any) => isObj(x) && typeof x.id === "string" && (x.pos === undefined || isVec3(x.pos)))) fail("scenario: 'lanterns' sai định dạng");
+    if (!Array.isArray(s.lanterns) || !s.lanterns.every((x: any) => isObj(x) && typeof x.id === "string" && (x.pos === undefined || isVec3(x.pos)) &&
+      (x.fuel === undefined || (isNum(x.fuel) && x.fuel >= 0)) && (x.ever_lit === undefined || typeof x.ever_lit === "boolean"))) fail("scenario: 'lanterns' sai định dạng");
   }
   if (s.time_left_s !== undefined && !isNum(s.time_left_s)) fail("scenario: 'time_left_s' phải là số");
   return s as Scenario;
